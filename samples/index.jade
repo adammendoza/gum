@@ -1,0 +1,13 @@
+include ../dist/gum
+include ../dist/mint
+
+doctype html
+html(lang="en")
+  head
+    title="Sweet Gum Test"
+
+  body
+    h1 Mint
+    #container
+      +php $hello = "Hi!!";
+      p: +echo $hello
