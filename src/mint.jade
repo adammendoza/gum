@@ -6,6 +6,30 @@
    *
    */
 include gum
+
+//-**
+   *
+   *  Keeps track of processing mixins.
+   *
+   *  @since 0.0.1
+   */
+- Mixin = {}
+- Mixin.php    = false
+- Mixin.if     = false
+- Mixin.switch = false
+- Mixin.case   = false
+//-**
+   *
+   *  Echoes opening/closing <?php ?> tags alternatively.
+   *
+   *  @since 0.0.1
+   */
+mixin php
+  - Mixin.php = !Mixin.php
+  if Mixin.php
+    !='<?php '
+  else
+    !='?>'
 //-**
    *
    *  Echoes a block and/or arguments inside <?php ?> tags.
@@ -25,13 +49,14 @@ mixin -(before, after)
   if block || before || after
     - before = before || ''
     - after = after || ';'
-    !='<?php ' + before
+    +php
+    !=before
     block
-    !=after + '?>'
-    //- +space?
+    !=after
+    +php
   else
     each value, name in attributes
-      - var obj = { output: $.util.q(value), length: 0 }
+      - var obj = { output: $.util.qstr(value), length: 0 }
       if value instanceof Array
         - obj.output = '[' + value + ']'
         - obj.length = value.length
@@ -43,19 +68,7 @@ mixin -(before, after)
         - obj.output = $.util.q()
 
       - $.S(name, '$'+name).length = obj.length
-      +var(name,obj.output)
-//-**
-   *
-   *  Echoes a $variable declaration.
-   *
-   *  @since 0.0.1
-   */
-mixin var(name, value)
-  +-('$')
-    if block
-      block
-    else
-      != name+'='+value
+      +-($[name] + '=' + obj.output)
 //-**
    *
    *  Echoes the block inside /* */ comment tags.
@@ -63,31 +76,37 @@ mixin var(name, value)
    *  @since 0.0.1
    */
 mixin --
-  +-
-    |/*
+  +-('/*', '*/')
     block
-    |*/
-
-mixin require(file)
-  - if (file.substr(-4) !== 'php')
-  +-('require_once(' + file + '.php);')
-
 //-**
    *
-   *  Simple PHP echo statement. Appends arguments to the block.
+   *  Echoes a require_once("file[.php]") statement.
    *
    *  @since 0.0.1
    */
-mixin echo()
-  - var output = "", args = arguments
-  each value in args
-    - output += $.util.qstr(value) + '.'
-  +-
-    = 'echo '
+mixin require(file)
+  +-('require_once(', ');')
+    != $.util.q(file + (file.substr(-4) !== '.php' ? '.php': ''))
+//-**
+   *
+   *  Simple PHP echo statement.
+   *
+   *   +echo([args, ...])
+   *   +echo block
+   *   +echo
+   *     block
+   *
+   *  @since 0.0.1
+   */
+mixin echo
+  - var echo = "", args = arguments
+  +-('echo')
     if block
       block
     else
-      !=output.slice(0,-1)
+      each value in args
+        - echo += $.util.qstr(value) + '.'
+      !=echo.slice(0,-1)
 //-**
    *
    *  Simple PHP die function.
@@ -104,8 +123,8 @@ mixin die
    *  @since 0.0.1
    */
 mixin _if(condition, elseif)
-  - before = elseif ? 'elseif(' : 'if('
-  +-(before + condition + ')', ':')
+  - Mixin.if = true
+  +-( (elseif ? 'elseif(' : 'if(') + condition + ')', ':')
     block
 //-**
    *
@@ -127,24 +146,7 @@ mixin elseif(condition)
   block
 //-**
    *
-   *  PHP else statement.
-   *
-   *  @since 0.0.1
-   */
-mixin else
-  +-('else', ':')
-  block
-//-**
-   *
-   *  PHP endif statement.
-   *
-   *  @since 0.0.1
-   */
-mixin endif
-  +- endif
-//-**
-   *
-   *  Wrapper for PHP if !statement.
+   *  Echoes an if (!condition) block.
    *
    *  @since 0.0.1
    */
@@ -154,12 +156,59 @@ mixin unless(condition)
   +endif
 //-**
    *
+   *  PHP else statement. When inside a switch echoes the default case.
+   *
+   *  @since 0.0.1
+   */
+mixin else
+  if Mixin.switch && !Mixin.if
+    +-('default', ':')
+    +- break
+  else
+    +-('else', ':')
+  block
+//-**
+   *
+   *  PHP endif statement.
+   *
+   *  @since 0.0.1
+   */
+mixin endif
+  +- endif
+  - Mixin.if = false
+//-**
+   *
+   *  @since 0.0.1
+   */
+mixin switch(condition)
+  - Mixin.switch = true, Mixin.case = true
+  +php
+  !='switch(' + condition + '):'
+  block
+  +- endswitch
+  - Mixin.switch = false
+//-**
+   *
+   *  @since 0.0.1
+   */
+mixin case(condition)
+  if Mixin.case
+    !='case ' + $.util.qstr(condition) + ':'
+    +php
+    - Mixin.case = false
+  else
+    +-('case ', ':')
+      !=$.util.qstr(condition)
+  block
+  +- break
+//-**
+   *
    *  PHP while loop.
    *
    *  @since 0.0.1
    */
 mixin while(condition)
-  +-('while('+ condition, '):')
+  +-('while(' + condition, '):')
   block
   +- endwhile
 //-**
