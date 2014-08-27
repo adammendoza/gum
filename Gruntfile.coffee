@@ -19,41 +19,36 @@ module.exports = (grunt) ->
 
       js2jade:
         files: ["src/*.js"]
-        tasks: ["js2jade"]
+        tasks: ["js2jade", "samples"]
 
       jade:
         files: ["src/*.jade"]
-        tasks: ["copy:jade"]
+        tasks: ["copy:jade", "samples"]
 
   require("load-grunt-tasks") grunt
   grunt.registerTask "build", ["js2jade", "copy:jade"]
   grunt.registerTask "default", ["build", "samples", "watch"]
 
-
   grunt.registerTask "samples", ->
-    #
-    #  Edit package.json to enable/disable samples.
-    #
-    #    "samples": {
-    #      "enabled": true,
-    #      "path": "samples/",
-    #      "local": "../../www/gum"
-    #    },
-    #
+   #
+   #  Edit samples config in package.json
+   #
     samples = grunt.file.readJSON("package.json").samples
-    if samples.enabled
-      grunt.config "jade",
-        samples: files: [
-          expand: true
-          cwd: samples.path
-          src: ["*.jade"]
-          dest: samples.local
-          ext: ".php"
-        ]
-      grunt.config.merge
-        watch:
-          files: [samples.path + "*.jade"]
-          tasks: ["samples"]
+    return unless samples.enabled
+    grunt.config "jade",
+      samples: files: [
+        expand: true
+        cwd: samples.path
+        src: ["*.jade"]
+        dest: samples.local
+        ext: ".php"
+      ]
+    grunt.config.merge
+      watch:
+        files: [samples.path + "*.jade"]
+        tasks: ["samples"]
 
-      grunt.task.run "jade"
-      grunt.log.writeln "Building samples in " + samples.local.cyan
+    # grunt.config("watch").jade.tasks.push "samples"
+
+    grunt.task.run "jade"
+    grunt.log.writeln "Building samples in " + samples.local.cyan
