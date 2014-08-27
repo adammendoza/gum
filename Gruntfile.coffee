@@ -4,7 +4,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     js2jade:
       files:
-        src:["src/cherry.js", "src/plum.js"]
+        src:["src/gum.js"]
         dest:"dist/gum.jade"
     copy:
       jade: files: [
@@ -47,8 +47,6 @@ module.exports = (grunt) ->
       watch:
         files: [samples.path + "*.jade"]
         tasks: ["samples"]
-
-    # grunt.config("watch").jade.tasks.push "samples"
 
     grunt.task.run "jade"
     grunt.log.writeln "Building samples in " + samples.local.cyan

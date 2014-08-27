@@ -1,12 +1,15 @@
 include ../dist/gum
 include ../dist/mint
 
+
 doctype html
 html(lang="en")
   head
     title="Sweet Gum Test"
 
   body
+
+    !=$.F("myFunc")()
 
     h1 Mint
     h2 Variables
@@ -56,4 +59,53 @@ html(lang="en")
          b ="a"
          c="long"
          d="string")
-      +echo($.a.b.c.d.cat(".' '."))
+      +echo($.a.b.c.d.cat())
+
+    h2 Comments
+    p
+      +-- This is a comment.
+
+
+
+    h2 Switch
+    +-(country = "Japan" )
+
+    +switch ($.country)
+      +case ("Japan")
+        p 日本語
+        +if (false)
+          p Hello
+        +else
+          p Aha!
+        +endif
+
+      +case ("Venezuela")
+        p Español
+
+      +case ("U.S")
+        p English
+
+      +case ("Greece")
+        p ελληνικά
+
+      +else
+        p Other
+
+
+    h2 While
+    +-(day=1)
+    +while($.day.is.less.than._(24))
+      p
+        +echo('Not Christmas yet. ', $.day.inc, '/12/2014')
+    +echo "Merry Christmas"
+
+
+    h2 Choose your OS
+    form
+      select
+        option Windows
+        option OSX
+        option Linux
+      p Other
+      input(type="text")
+      input(type="submit")
