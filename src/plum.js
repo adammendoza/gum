@@ -32,19 +32,6 @@ $.php = function() {
 };
 /**
  *
- *  $.chopr = function(s)
- *
- *  Chops the right most character in s and returns
- *  the new string.
- *
- *  @since 0.0.1
- *
- */
-$.chopr = function(s) {
-  return s.slice(0,-1);
-};
-/**
- *
  *  For a string such as 'element#id.class1.class2'
  *  should return the following object:
  *
@@ -73,10 +60,9 @@ $.tag = function(s) {
     if (i === s.length) {
       ch = tok || ' ';
       /*
-       *  If this is the last iteration, set the character to
-       *  the last . or # token, if there was no token s only
-       *  holds a name, so add a blank space to account chopr
-       *  side effects when name is assigned.
+       *  If this is the last iteration, set ch to the last . or #
+       *  token. If there was no token s only holds a name, so add
+       *  a blank space to maek up for slice(0,-1).
        */
     } else {
       ch = s[i];
@@ -92,11 +78,11 @@ $.tag = function(s) {
      *  the token for the next cycle.
      */
       if (name === '') {
-        name = $.chopr(buffer);
+        name = buffer.slice(0,-1);
       } else if (tok === '.') {
-          _class = (_class || '') + $.chopr(buffer) + ' ';
+          _class = (_class || '') + buffer.slice(0,-1) + ' ';
       } else if (tok === '#') {
-        id = $.chopr(buffer);
+        id = buffer.slice(0,-1);
       }
       tok = ch, buffer = '';
     }
@@ -104,7 +90,7 @@ $.tag = function(s) {
   return {
     name: name,
     id: id,
-    class: _class ? $.chopr(_class) : _class
+    class: _class ? _class.slice(0,-1) : _class
     /*
      *  Trim the blank space added to the class list
      *  during _class assignment.
