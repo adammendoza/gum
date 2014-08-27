@@ -8,105 +8,110 @@
 include gum
 //-**
    *
-   *  Echoes the block inside <?php ?> tags.
+   *  Echoes a block and/or arguments inside <?php ?> tags.
+   *  If none are passed, declares a list of variables with
+   *  the attributes object. Variables declared here are also
+   *  instantiated as $ nodes and thus can be used via $.var
+   *  inside +if or +while mixins.
    *
-   *  @before text to prepend to the php code inside <?php?>.
-   *  @after  text to append to the php code inside <?php?>.
-   *  @block  php code to render inside <?php?>.
+   *  @before       Text to prepend to the code inside <?php?>.
+   *  @after        Text to append to the code inside <?php?>.
+   *  @block        Code to render inside <?php?>.
+   *  @attributes   List of variables to declare / initialize.
    *
    *  @since 0.0.1
-   *
    */
 mixin -(before, after)
-  - before = before || ''
-  - after = after || ';'
-  !='<?php ' + before + ' '
-  block
-  != after + ' ?>'
-//-**
-   *
-   *  Alias for +- mixin.
-   *
-   *  @since 0.0.1
-   *
-   */
-mixin php(before, after)
-  +-(before, after)
+  if block || before || after
+    - before = before || ''
+    - after = after || ';'
+    !='<?php ' + before
     block
+    !=after + '?>'
+    //- +space?
+  else
+    each value, name in attributes
+      - var obj = { output: $.util.q(value), length: 0 }
+      if value instanceof Array
+        - obj.output = '[' + value + ']'
+        - obj.length = value.length
+
+      else if value instanceof Object
+        - obj = $.util.assoc(value)
+
+      else if value === ''
+        - obj.output = $.util.q()
+
+      - $.S(name, '$'+name).length = obj.length
+      +var(name,obj.output)
 //-**
    *
-   *  Echoes the block inside comment tags.
-   *
-   *  @block of comments to echo.
+   *  Echoes a $variable declaration.
    *
    *  @since 0.0.1
+   */
+mixin var(name, value)
+  +-('$')
+    if block
+      block
+    else
+      != name+'='+value
+//-**
    *
+   *  Echoes the block inside /* */ comment tags.
+   *
+   *  @since 0.0.1
    */
 mixin --
   +-
     |/*
     block
     |*/
+
+mixin require(file)
+  - if (file.substr(-4) !== 'php')
+  +-('require_once(' + file + '.php);')
+
 //-**
    *
-   *  Wrapper for mixin --. See above.
-   *
-   *  @block of comments to echo.
+   *  Simple PHP echo statement. Appends arguments to the block.
    *
    *  @since 0.0.1
-   *
    */
-mixin comment
-  +--
-    block
-//-**
-   *
-   *  Wrapper for PHP echo statement.
-   *
-   *  @block of php to echo.
-   *
-   *  @since 0.0.1
-   *
-   */
-mixin echo
+mixin echo()
+  - var output = "", args = arguments
+  each value in args
+    - output += $.util.qstr(value) + '.'
   +-
-    ='echo '
-    block
+    = 'echo '
+    if block
+      block
+    else
+      !=output.slice(0,-1)
 //-**
    *
-   *  Wrapper for PHP die function. die is a function so we pass );
-   *  to mixin - and then the block.
-   *
-   *  @block of text to die.
+   *  Simple PHP die function.
    *
    *  @since 0.0.1
-   *
    */
 mixin die
-  +-('(', ');')
-    ='die'
+  +-('die(', ');')
     block
 //-**
    *
-   *  Echoes PHP if statements with support for elseif.
-   *
-   *  @condition  to echo inside php tags.
-   *  @elseif     true if the statement is an else if.
+   *  PHP if / elseif statement helper. @private
    *
    *  @since 0.0.1
-   *
    */
 mixin _if(condition, elseif)
-  +-(elseif ? 'elseif(' : 'if(' + condition, ') :')
+  - before = elseif ? 'elseif(' : 'if('
+  +-(before + condition + ')', ':')
     block
 //-**
    *
    *  PHP if statement.
    *
-   *  @condition to echo inside php tags.
-   *
    *  @since 0.0.1
-   *
    */
 mixin if(condition)
   +_if (condition)
@@ -115,10 +120,7 @@ mixin if(condition)
    *
    *  PHP elseif statement.
    *
-   *  @condition to echo inside php tags.
-   *
    *  @since 0.0.1
-   *
    */
 mixin elseif(condition)
   +_if (condition, /*elseif*/true)
@@ -128,7 +130,6 @@ mixin elseif(condition)
    *  PHP else statement.
    *
    *  @since 0.0.1
-   *
    */
 mixin else
   +-('else', ':')
@@ -138,45 +139,79 @@ mixin else
    *  PHP endif statement.
    *
    *  @since 0.0.1
-   *
    */
 mixin endif
-  block
   +- endif
-//-**
-   *
-   *  Alias for +endif mixin.
-   *
-   *  @since 0.0.1
-   *
-   */
-mixin fi
-  +endif
 //-**
    *
    *  Wrapper for PHP if !statement.
    *
-   *  @condition to echo inside php tags.
-   *
    *  @since 0.0.1
-   *
    */
 mixin unless(condition)
   +if('!' + condition)
-  block
+    block
+  +endif
 //-**
    *
    *  PHP while loop.
    *
-   *  @condition to echo inside php tags.
-   *
    *  @since 0.0.1
-   *
    */
 mixin while(condition)
   +-('while('+ condition, '):')
   block
   +- endwhile
+//-**
+   *
+   *  Echoes a simple PHP for loop.
+   *
+   *  +for(name=from to=N [by=N])
+   *
+   *  Creates a $ node with @name and generates a for loop that runs
+   *  @to - @from times at @by intervals. If not set, @by increments
+   *  by 1 if @from < @to, or -1 if viceversa.
+   *
+   *  +for(i=0 to=10)
+   *    ...
+   *  +for(j=10 to=0)
+   *    ...
+   *  +for(k=100 to=-100 by=-10)
+   *    ...
+   *
+   *  @since 0.0.1
+   */
+mixin for
+  - var prop = $.util.propAt(1,attributes);
+  - var from = attributes[prop];
+  - var to = attributes.to;
+  - var by = attributes.by || (from < to ? 1 : -1);
+  - var sym = by > 0 ? '<' : '>';
+  - var and = by > 0 ? '+' : '';
+  - prop = $.S(prop, '$'+prop).toString();
+  +-('for(' + prop + '=' + from + ';' +
+              prop + sym + to   + ';' +
+              prop + '=' + prop + and + by + ')',':')
+  block
+  +- endfor
+//-**
+   *
+   *  Echoes a PHP foreach loop.
+   *
+   *  +each(in=array item)
+   *    ...
+   *
+   *  Creates a $ node with @item and generates a foreach loop that
+   *  runs for each item in @array.
+   *
+   *  @since 0.0.1
+   */
+mixin each
+  - var prop = $.util.propAt(2, attributes)
+  - prop = $.S(prop, '$'+prop).toString();
+  +-('foreach(' + attributes.in + ' as ' + prop, "):")
+  block
+  +- endforeach
 //-**
    *
    *  Repeats the block $times times.
@@ -185,6 +220,7 @@ mixin while(condition)
    *
    *  @since 0.0.1
    *
+   *  @todo  Change name to times.
    */
 mixin repeat(times)
   - var i = 0
@@ -192,18 +228,17 @@ mixin repeat(times)
     block
 //-**
    *
-   *  A yet block is described below.
+   *  Echoes a yet block as described below.
    *
-   *    {name} = {$}
-   *    if ({name}) {
+   *    data = callback()
+   *    if (data) {
    *      block
    *    }
    *
-   *  @callback name of a function that returns some data.
-   *  @name of the variable to set to the data.
+   *  Generates a block that calls a function @callback, stores the
+   *  result in @data and inserts the block if @data returns !null.
    *
    *  @since 0.0.1
-   *
    */
 mixin yet(callback,data)
   - data = data || '$data';
@@ -214,14 +249,18 @@ mixin yet(callback,data)
   +endif
 //-**
    *
-   *  Generates an if statement that echoes the contents of the block
-   *  if !== null wrapped in markup optionally. Notice we are echoing
-   *  a block instead of a string argument, as the condition of the
-   *  generated if statement. This allows extra markup to be passed
-   *  in to maybe, however we can't use the regular +if mixin.
+   *  Echoes a maybe block as described below.
    *
-   *  @block php to echo inside if clause and if statement.
-   *  @markup to generate inside the echo statement
+   *    if (block) {
+   *      <markup id="" class="">
+   *      echo block
+   *      </markup>
+   *    }
+   *
+   *  Generates an if statement that echoes the contents of the block
+   *  if not null wrapped in markup optionally. We are passing markup
+   *  as an argument and the condition as a block, so is not possible
+   *  to use +if() that expects the condition to be its argument.
    *
    *  @since 0.0.1
    */
@@ -235,13 +274,9 @@ mixin maybe(markup)
   +endif
 //-**
    *
-   *  Echoes the block inside conditional IE<ve>
-   *  comments.
-   *
-   *  @version number to attach to the IE conditional.
+   *  Echoes the block inside conditional IE<version> comments.
    *
    *  @since 0.0.1
-   *
    */
 mixin if_ie(version, condition)
   - condition = condition || ''
@@ -250,37 +285,25 @@ mixin if_ie(version, condition)
   !='<![endif]-->'
 //-**
    *
-   *  Echoes the block inside conditional lt IE<ver>
-   *  comments.
-   *
-   *  @version number to attach to the IE conditional.
+   *  Echoes the block inside conditional lt IE<version> comments.
    *
    *  @since 0.0.1
-   *
    */
 mixin if_lt_ie(version)
   +if_ie(version, 'lt')
 //-**
    *
-   *  Echoes the block inside conditional gt IE<ver>
-   *  comments.
-   *
-   *  @version number to attach to the IE conditional.
+   *  Echoes the block inside conditional gt IE<version> comments.
    *
    *  @since 0.0.1
-   *
    */
 mixin if_gt_ie(version)
   +if_ie(version, 'gt')
 //-**
    *
-   *  Echoes IE<ver> conditional comments for the
-   *  HTML element.
-   *
-   *  @version number to attach to the IE conditional.
+   *  Echoes IE<version> conditional comments for the HTML element.
    *
    *  @since 0.0.1
-   *
    */
 mixin html_ie(version)
   !='<!--[if IE '+version+']><html'
@@ -308,15 +331,12 @@ mixin html_ie(version)
   !='<![endif]-->'
 //-**
    *
-   *  Echoes teh html5shiv hack.
-   *
-   *  @link to the html5 script.
+   *  Echoes the html5shiv hack.
    *
    *  @since 0.0.1
-   *
    */
-mixin html5shiv(link)
-  - link = link || 'http://html5shiv.googlecode.com/svn/trunk/html5.js'
+mixin html5shiv(url)
+  - url = url || 'http://html5shiv.googlecode.com/svn/trunk/html5.js'
   +if_lt_ie(9)
-    !='<script src="' + link + '"></script>'
-  !='<!--[if lt IE 9]><script src="' + link + '"></script><![endif]-->'
+    !='<script src="' + url + '"></script>'
+  !='<!--[if lt IE 9]><script src="' + url + '"></script><![endif]-->'

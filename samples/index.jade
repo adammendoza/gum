@@ -7,7 +7,53 @@ html(lang="en")
     title="Sweet Gum Test"
 
   body
+
     h1 Mint
-    #container
-      +php $hello = "Hello.";
-      p: +echo $hello
+    h2 Variables
+    p
+      +-(bob=29 jon=30 sam="" dan="A string")
+
+      +if ($.bob.is.greater.than.jon)
+        p Bob wins!
+      +elseif ($.bob.is.less.than.jon)
+        p John wins!
+      +else
+        p Tie!
+      +endif
+
+    h2 Arrays
+    p
+      +-(arr=[10,20,3])
+
+      +if ($.arr.at(1).gt.arr.at(2))
+        p Mhum!!
+      +endif
+
+    h2 Dictionaries
+    p
+      +-(dict={a:10,b:20,c:3,animal:"wolf",insect:"bee"})
+
+      +if ($.dict.at("a").gt.dict.at("c"))
+        p Mhum
+        +if ($.dict.at("insect").is._("bee"))
+          p Uhwooooo!
+        +endif
+      +endif
+
+    h2 for block
+    p
+      +for(i=0 to=$.arr.length)
+        +echo("<hr>", $.arr.at($.i), "<hr>")
+
+    h2 foreach block
+    p
+      +each(in=$.arr myItem)
+        +echo("<hr>", $.myItem, "<hr>")
+
+    h2 concatenation
+    p
+      +-(a="This is"
+         b ="a"
+         c="long"
+         d="string")
+      +echo($.a.b.c.d.cat(".' '."))
