@@ -1,3 +1,5 @@
+// Guidelines for creating JS objects/classes
+
 /**
  *
  *  gum/cherry.js
@@ -15,24 +17,25 @@
  *  @this.name     of the node. (myVar, myFunc, %)
  *  @this.value    of the expression string up to this node.
  *  @this.symbol   of the node in case of operators.
- *
- *  @since 0.0.1
- *
  */
 $ = function(name, value) {
-  this.name = name, this.symbol = value;
   /*
-   *  If value = null, this.add will create a function node when
-   *  be created, else this.symbol will keep the original value
-   *  while this.value will change as the node chain is built.
+   *  Only for array or dictionary objects.
    */
-  this.value = value;
+  this.length = null;
+  /*
+   *  If value is null, this.add will create a function node.
+   *  This value will change as the node chain is built while
+   *  the original value is kept in symbol.
+   */
+  this.name = name, this.symbol = value, this.value = value;
   /*
    *  Every new node is added here. The list is then parsed and
    *  This is linked to all nodes and all nodes to This.
    */
   $.nodes || ($.nodes = []);
-  /*
+  /**
+   *
    *  If value exists define a property in the node with the specified
    *  name and value (value == name in case of variables), else define
    *  a function with the name. The get function appends value to this
@@ -40,12 +43,11 @@ $ = function(name, value) {
    *  the result of concatenating all values. Functions work similarly
    *  returning another function that appends the name and the list of
    *  arguments to the node's value and returns it.
+   *
+   *  @since 0.0.1
+   *
    */
   this.add = function(name, value) {
-  /*
-   *  this.add() is called when creating a new node to add the default
-   *  operators and bind all existing nodes with each other.
-   */
     if (this.hasOwnProperty(name)) return;
 
     if (value) {
@@ -61,8 +63,8 @@ $ = function(name, value) {
           } else if ((value === '>' || value === '<') &&
                      this.value.substr(-3) === '===') {
           /*
-           *  If node is > or < fix the output if the last
-           *  node was === to allow is.greater.than , etc.
+           *  If node is > or < fix the output if the last node was
+           *  === to allow is.greater.than , etc.
            */
           this.value = this.value.slice(0,-3) + value ;
           } else {
@@ -74,51 +76,75 @@ $ = function(name, value) {
              */
             this.value += value;
           }
-          /*
-           * Links nodes like node.node.node
-           */
           return this;
         }
       });// ~ Object.defineProperty
     } else {
-      this[name] = $.func(this, name);
+      this[name] = $.util.defineFunction(this, name);
       /*
        *  name !== this.name when binding the current node to
        *  every other node in $.nodes. Note that passing null
-       *  as name to $.func will use this.name instead, so it
-       *  is used only when creating nodes for the first time.
+       *  as name to $.util.defineFunction will use this.name
+       *  instead, so it is used only when creating nodes for
+       *  the first time.
        */
     }
   };
-  /*
-   *  Add the equals operator. e.g., a.equals(5) -> a === 5
+  /**
+   *
+   *  ..
+   *
+   *  @since 0.0.1
+   *
    */
-  this.equals = function(it) {
-    var op = this.value.slice(-1) === '!' ? '==' : '===';
-    this.value += op + (typeof it === 'string' ? $.quote(it) : it);
+  this._ = function(value) {
+    this.value += $.util.qstr(value);
+    return this;
+  };
+  /**
+   *
+   *  ..
+   *
+   *  @since 0.0.1
+   *
+   */
+  this.at = function(index) {
+    this.value += "[" + $.util.qstr(index) + "]";
+    return this;
+  };
+  /**
+   *
+   *  Concats all nodes and returns the result separated by @set.
+   *
+   *  @since 0.0.1
+   */
+  this.cat = function(sep) {
+    sep = sep || '.';
+    this.value = this.value.replace(/\$/g, sep + '$').slice(sep.length);
     return this;
   };
   /*
-   *  Add the than function to match greater and less operators.
-   */
-  this.than = function(it) {
-    this.value += (typeof it === 'string' ? $.quote(it) : it);
-    return this;
-  };
-  /*
-   *  Add basic operators ! && || ===
+   *  Adds basic operators ! && || ===
    */
   (function(node) {
     node.add('not', '!');
     node.add('and', '&&');
     node.add('or', '||');
     node.add('is', '===');
+    node.add('gt', '>');
     node.add('greater', '>');
-    node.add('more', '>');
+    // node.add('more', '>');
+    node.add('lt', '<');
     node.add('less', '<');
+    node.add('than', ' ');
+
+
+    // node.add('cat', '.');
+
+
   })(this);
   /*
-   *  @bind: Link This to all nodes and all nodes to This.
+   *  Links This to all nodes and all nodes to This.
    */
   (function(node) {
     $.nodes.push(node);
@@ -131,20 +157,6 @@ $ = function(name, value) {
 };
 /**
  *
- *  $.quote = function(text)
- *
- *  Returns text surrounded by single quotes.
- *
- *  @text to quote.
- *
- *  @since 0.0.1
- *
- */
-$.quote = function(text) {
-  return "'" + (text || '') + "'";
-};
-/**
- *
  *  Returns the string representation of the node chain.
  *  Runs when the last node of a chain is evaluated.
  *
@@ -153,101 +165,161 @@ $.quote = function(text) {
  *
  *  @since 0.0.1
  */
-$.prototype.toString = function() {
+$.prototype.toString = function() { // why prototype?
   var value = this.value;
   this.value = this.symbol || this.name;
   return value;
 };
 /**
  *
- *  Helper for $.F. Returns a function that appends name
- *  | node.name to the value string and returns the node.
+ *
+ *  @since 0.0.1
+ */
+$.util = {};
+/**
+ *
+ *  Helper for $.F. Returns a function that appends name or node.name
+ *  to the value string and returns the node.
  *
  *  Sets node.value to A + B + C and returns it where:
  *    - A is the expression string up to this node.
  *
- *    - B is the function's name; node.name for root
- *      nodes created by $.Fun or name for dynamically
- *      added functions in @bind via this.add.
+ *    - B is the function's name; node.name for root nodes created by
+ *      $.F or name for dynamically added functions with this.add.
  *
- *    - C is the list of variable arguments passed to the
- *      returned function formatted like ($0, $1, $2,...)
+ *    - C is the list of variable arguments passed to the returned
+ *      function formatted like ($0, $1, $2,...)
  *
- *  Nodes can be used in two ways, (1) for the first time,
- *  when the node is at the root of the expression or (2)
- *  when the node appears inside an expression.
+ *  Nodes can be used in two ways, 1 for the first time, when the node
+ *  is at the root of the expression or 2 when the node appears inside
+ *  an expression.
  *
- *  The return function for (1) is created by $.Fun that
- *  calls $.func without name, so the name is taken from
- *  node.name. This function is run when using a node at
- *  the root of an expression. ->root().node().node()
+ *  The function for 1 is created by $.F that calls $.util.defineFunction
+ *  without name, so the name is taken from node.name. This function runs
+ *  when using a node at the root of an expression. ->root().node().node()
  *
- *  The return function for (2) is created by $ this.add
- *  when binding nodes with every other node in $.nodes.
+ *  The return function for (2) is created by $ this.add when binding nodes
+ *  with every other node in $.nodes.
  *
  *  @since 0.0.1
  */
-$.func = function(node, name) {
+$.util.defineFunction = function(node, name) {
   return function() {
     if (!name) node.value = '';
     /*
-     *  Reset value string when starting a new node chain,
-     *  in $ node function calls; when name is null.
+     *  Reset value string when starting a new node chain
+     *  in $ node function calls, i.e., when name is null.
      */
     node.value = (node.value || '')   +
                  (name || node.name)  +
-                 $.argsToString(arguments);
+                 $.util.args(arguments);
     return node;
   };
 };
 /**
  *
- *  Returns a function $ node. Creates a node and calls
- *  $.func() without a name to get a function that runs
- *  only for root nodes; when starting a new node chain.
+ *  Returns "value".
+ *
+ *  @value Mixed Data to quote.
+ *
+ *  @since 0.0.1
+ */
+$.util.q = function(value) {
+  return '"' + (value || '') + '"';
+};
+/**
+ *
+ *  If value is a string returns "value".
+ *
+ *  @value Mixed Data to quote.
+ *
+ *  @since 0.0.1
+ */
+$.util.qstr = function(value) {
+  return (typeof value === 'string' ? $.util.q(value) : value);
+};
+/**
+ *
+ *  Returns a string like ($0, $1, ...) from a JavaScript
+ *  arguments array-like object. Any items of String type
+ *  are quoted.
+ *
+ *  @args Arguments.
+ *
+ *  @since 0.0.1
+ */
+$.util.args = function(args) {
+  for (var index in args) {
+    // (typeof args[i] !== 'string') || (args[i] = $._q(args[i]));
+    args[index] = this.qstr(args[index]);
+  }
+  return '(' + [].join.call(args,',') + ')';
+};
+/**
+ *
+ *  Returns an associative array declaration string and its length
+ *  packed in an object.
+ *
+ *  @since 0.0.1
+ */
+$.util.assoc = function(object) {
+  var output = '[', length = 0;
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) {
+      output +=  $.util.q(prop) + '=>' + object[prop] + ',';
+      length++;
+    }
+  }
+  if (length > 0) {
+    output = output.slice(0,-1);
+  }
+  return { output: output + "]", length: length };
+};
+/**
+ *
+ *  Returns the property at @index in @object.
+ *
+ *  @since 0.0.1
+ */
+ $.util.propAt = function(index, object) {
+  var count = 1;
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) {
+      if (index === count++) return prop;
+    }
+  }
+};
+/**
+ *
+ *  Creates a node and calls $.util.defineFunction() without a name to
+ *  get the function that runs only for root nodes, ie., when starting
+ *  a new node chain.
  *
  *  @name String e.g, myFunc
  *
  *  @since 0.0.1
- *
  */
 $.F = function(name) {
-  return $.func(new $(name));
+  return $[name] = $.util.defineFunction(new $(name));
 };
 /**
  *
- *  Returns a symbol $ node; operators or variables.
+ *  Returns a symbol $ node; operators or variables
+ *  and adds the node to the global $ namespace.
  *
  *  @name  String e.g, mod, plus, the_key
  *  @value String for example; %, +, posts['key']
  *
  *  @since 0.0.1
- *
  */
 $.S = function(name, value) {
-  return new $(name, value || name);
+  return $[name] = new $(name, value || name) ;
 };
 /**
  *
- *  Declare $ symbol for the not ! unary operator.
+ *  Declare $ symbol for the not ! unary operator
+ *  and adds the node to the global $ namespace.
  *
  *  @since 0.0.1
- *
  */
 not = $.S('not', '!');
-/**
- *
- *  Returns a string like ($0, $1, ...) from an array of
- *  strings. Objects of String type are quoted.
- *
- *  @args Array of strings.
- *
- *  @since 0.0.1
- *
- */
-$.argsToString = function(args) {
-  for (var i in args) {
-    (typeof args[i] !== 'string') || (args[i] = $.quote(args[i]));
-  }
-  return '(' + [].join.call(args,',') + ')';
-};
