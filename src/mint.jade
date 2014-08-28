@@ -38,6 +38,16 @@ mixin php
    *  instantiated as $ nodes and thus can be used via $.var
    *  inside +if or +while mixins.
    *
+   *    +- block
+   *
+   *    +-(before, after)
+   *      [block]
+   *
+   *    +-(a=Number b=String c=Array d=Object)
+   *
+   *    +-(func=myFunc a b c)
+   *      block
+   *
    *  @before       Text to prepend to the code inside <?php?>.
    *  @after        Text to append to the code inside <?php?>.
    *  @block        Code to render inside <?php?>.
@@ -46,29 +56,60 @@ mixin php
    *  @since 0.0.1
    */
 mixin -(before, after)
-  if block || before || after
+
+
+  if $.util.has(attributes)
+    if $.util.has(attributes) === 'function'
+
+
+    else
+      each value, name in attributes
+        - var obj = { output: value, length: 0 }
+
+        if value instanceof Array
+          - obj.output = '[' + value + ']'
+          - obj.length = value.length
+
+        else if value instanceof Object
+          - obj = $.util.jsToDictionary(value)
+
+        else if typeof value === 'string'
+          if value.substr(0,1) === '$'
+            - obj.output = $.util.escapeQuotes(value)
+          else
+            - obj.output = $.util.quote(value)
+
+        - $(name, '$'+name).length = obj.length
+        +-($[name] + '=' + obj.output)
+
+  else
     - before = before || ''
     - after = after || ';'
     +php
     !=before
-    block
+    if block
+      block
     !=after
     +php
-  else
-    each value, name in attributes
-      - var obj = { output: $.util.qstr(value), length: 0 }
-      if value instanceof Array
-        - obj.output = '[' + value + ']'
-        - obj.length = value.length
 
-      else if value instanceof Object
-        - obj = $.util.assoc(value)
 
-      else if value === ''
-        - obj.output = $.util.q()
 
-      - $.S(name, '$'+name).length = obj.length
-      +-($[name] + '=' + obj.output)
+
+
+
+
+
+//-**
+   *
+   *  Echoes the block inside /* */ comment tags.
+   *
+   *  @since 0.0.1
+   */
+mixin func
+  +-('function', '*/')
+    block
+
+
 //-**
    *
    *  Echoes the block inside /* */ comment tags.
@@ -86,7 +127,7 @@ mixin --
    */
 mixin require(file)
   +-('require_once(', ');')
-    != $.util.q(file + (file.substr(-4) !== '.php' ? '.php': ''))
+    != $.util.quote(file + (file.substr(-4) !== '.php' ? '.php': ''))
 //-**
    *
    *  Simple PHP echo statement.
@@ -105,7 +146,7 @@ mixin echo
       block
     else
       each value in args
-        - echo += $.util.qstr(value) + '.'
+        - echo += $.util.quoteString(value) + '.'
       !=echo.slice(0,-1)
 //-**
    *
@@ -193,12 +234,12 @@ mixin switch(condition)
    */
 mixin case(condition)
   if Mixin.case
-    !='case ' + $.util.qstr(condition) + ':'
+    !='case ' + $.util.quoteString(condition) + ':'
     +php
     - Mixin.case = false
   else
     +-('case ', ':')
-      !=$.util.qstr(condition)
+      !=$.util.quoteString(condition)
   block
   +- break
 //-**
@@ -231,13 +272,13 @@ mixin while(condition)
    *  @since 0.0.1
    */
 mixin for
-  - var prop = $.util.propAt(1,attributes);
+  - var prop = $.util.has(attributes);
   - var from = attributes[prop];
   - var to = attributes.to;
   - var by = attributes.by || (from < to ? 1 : -1);
   - var sym = by > 0 ? '<' : '>';
   - var and = by > 0 ? '+' : '';
-  - prop = $.S(prop, '$'+prop).toString();
+  - prop = $(prop, '$' + prop).toString();
   +-('for(' + prop + '=' + from + ';' +
               prop + sym + to   + ';' +
               prop + '=' + prop + and + by + ')',':')
@@ -250,14 +291,14 @@ mixin for
    *  +each(in=array item)
    *    ...
    *
-   *  Creates a $ node with @item and generates a foreach loop that
-   *  runs for each item in @array.
+   *  Creates a $ node with @item and generates a foreach loop that runs
+   *  for each item in @array.
    *
    *  @since 0.0.1
    */
 mixin each
-  - var prop = $.util.propAt(2, attributes)
-  - prop = $.S(prop, '$'+prop).toString();
+  - var prop = $.util.has(attributes, 2)
+  - prop = $(prop, '$'+prop).toString();
   +-('foreach(' + attributes.in + ' as ' + prop, "):")
   block
   +- endforeach
@@ -268,8 +309,6 @@ mixin each
    *  @times to repeat the block.
    *
    *  @since 0.0.1
-   *
-   *  @todo  Change name to times.
    */
 mixin repeat(times)
   - var i = 0
@@ -329,7 +368,7 @@ mixin maybe(markup)
    */
 mixin if_ie(version, condition)
   - condition = condition || ''
-  !='<!--[if '+ condition +' IE '+version+']>'
+  !='<!--[if ' + condition + ' IE ' + version + ']>'
   block
   !='<![endif]-->'
 //-**
@@ -355,25 +394,25 @@ mixin if_gt_ie(version)
    *  @since 0.0.1
    */
 mixin html_ie(version)
-  !='<!--[if IE '+version+']><html'
+  !='<!--[if IE ' + version + ']><html'
   if attributes.php
-    !=' <?php '+attributes.php+'; ?>'
+    !=' <?php ' + attributes.php + '; ?>'
   //- Wraps the value in <?php ?> tags
 
   if attributes.lang
-    !=' lang='+attributes.lang
+    !=' lang=' + attributes.lang
   //- Specifies the language of the element's content.
 
   if attributes.class
-    !=' class="'+attributes.class+'"'
+    !=' class="' + attributes.class + '"'
   //- Specifies one or more classnames for the element.
 
   if attributes.id
-    !=' id="'+attributes.id+'"'
+    !=' id="' + attributes.id + '"'
   //- Specifies a unique id for the element.
 
   if attributes.xmlns
-    !=' xmlns="'+attributes.xmlns+'"'
+    !=' xmlns="' + attributes.xmlns + '"'
   //- Specifies the XML namespace attribute.
 
   !='>'

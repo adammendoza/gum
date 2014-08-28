@@ -9,7 +9,9 @@ html(lang="en")
 
   body
 
-    !=$.F("myFunc")()
+    - $("myFunc")
+    !=$.myFunc().myFunc().myFunc()
+
 
     h1 Mint
     h2 Variables
@@ -100,12 +102,37 @@ html(lang="en")
     +echo "Merry Christmas"
 
 
-    h2 Choose your OS
-    form
-      select
-        option Windows
-        option OSX
-        option Linux
-      p Other
-      input(type="text")
-      input(type="submit")
+    +-(version=$.method.Post('version'))
+    +-(os=$.method.Post('os'))
+
+    +if($.version.and.os)
+      p: +echo("You seleted ", $.os, " version: ", $.version)
+      p Thank you!
+    +else
+      h2 Choose your OS
+      form(action="index.php" method="post")
+        select(name="os")
+          option Windows
+          option OSX
+          option Linux
+        p Other
+        input(name="version" type="text")
+        input(type="submit")
+
+    +endif
+
+
+    h2 Null
+    +if($.os.is.null)
+      p Nil is Null!
+    +endif
+
+    h2 Functions
+
+    //- - console.log( $('myGreeting') )
+
+    //- +-(function=$.F('myGreeting') firstName lastName)
+    //-   p: +echo("Hello there ", $.firstName, " ", $.lastName)
+
+
+    //- +- $.myGreeting("1", "2")
