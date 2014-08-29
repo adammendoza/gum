@@ -74,10 +74,12 @@ mixin -(before, after)
     if $.util.has(attributes) === 'function'
       - var args = []
       each value, name in attributes
-        if name !== 'function'
+        if name === 'function'
+          - $(value)
+        else
           - args.push($(name, '$'+name) + (typeof value === 'string' ?  '='+$.util.quote(value) : '') )
 
-      +-('function ' + $[attributes.function.slice(0,-2)](args), '{')
+      +-('function ' + $[attributes.function](args), '{')
       block
       +-('', '}')
     else
@@ -94,10 +96,12 @@ mixin -(before, after)
         else if typeof value === 'string'
           if value.substr(0,1) === '$'
             - obj.output = $.util.escapeQuotes(value)
+
           else
             - obj.output = $.util.quote(value)
 
         - $(name, '$'+name).length = obj.length
+        //- - console.log($[name] + "///")
         +-($[name] + '=' + obj.output)
   else
     - before = before || ''
