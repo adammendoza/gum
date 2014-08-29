@@ -4,8 +4,8 @@ module.exports = (grunt) ->
   grunt.initConfig
     js2jade:
       files:
-        src:["src/gum.js"]
-        dest:"dist/gum.jade"
+        src:["src/mint.js"]
+        dest:"dist/mint.jade"
     copy:
       jade: files: [
         expand: true

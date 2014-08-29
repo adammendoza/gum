@@ -1,5 +1,5 @@
 /*
- *  gum/gum.js
+ *  gum/mint.js
  *  (c) Jorge Bucaran 2014
  *
  *  Create objects that represent either functions or symbols like constants,
@@ -12,12 +12,13 @@
  */
 'use strict';
 /*
- *  Alias for $.Function and $.Symbol. Returns a function $.Node and adds it
- *  to the $ namespace. If a value is passed creates a symbol node instead.
+ *  Alias for $.Function(name)() and $.Symbol. Creates a function $.Node,
+ *  and returns its result. If a value is passed, creates a symbol $.Node
+ *  and returns the object instead.
  *
  *  @since 0.0.1
  */
-$ = function(name, value) {
+function $(name, value) {
   return value ? $.Symbol(name, value) : $.Function(name);
 };
 /*
@@ -28,7 +29,7 @@ $ = function(name, value) {
  *  @since 0.0.1
  */
 $.Function = function(name) {
-  return $[name] = $.private.defineFunction(new $.Node(name));
+  return ($[name] = $.private.defineFunction(new $.Node(name)));
 };
 /*
  *  Returns a symbol $.Node and adds it to the $ namespace.
@@ -98,7 +99,9 @@ $.global.symbols = {
   than    : ' '   ,   is        : '==='   ,
   inc     : '++'  ,   dec       : '--'    ,
   plus    : '+'   ,   minus     : '-'     ,
-  times   : '*'   ,   by        : '/'
+  times   : '*'   ,   by        : '/'     ,
+  append  : '.='  ,   concat    : '.'     ,
+  equal   : '='
 };
 /*
  *  Invokes @callback for each property in $.global.symbols.
@@ -113,7 +116,7 @@ $.global.symbols.forEach = function(callback){
   }
 };
 /*
- *  Main $.Node definition. Calls $.Node.prototype.add for each symbol in
+ *  Main $.Node definition. Calls $.Node.prototype.new for each symbol in
  *  $.global.symbols and for each node in $.globals.nodes.
  */
 $.Node = function(name, value) {
@@ -124,7 +127,7 @@ $.Node = function(name, value) {
   // Adds the symbols defined in $.global.symbols to the instance.
   +function(node){
     $.global.symbols.forEach(function(name, value) {
-      node.add(name, value);
+      node.new(name, value);
     });
   }(this);
 
@@ -133,15 +136,16 @@ $.Node = function(name, value) {
     $.global.nodes.push(node);
     for (var i in $.global.nodes) {
       for (var j in $.global.nodes) {
-        $.global.nodes[i].add($.global.nodes[j].name, $.global.nodes[j].value);
+        $.global.nodes[i].new($.global.nodes[j].name, $.global.nodes[j].value);
       }
     }
   }(this);
 };
 /*
- *  Returns the string representation of the node chain when the last node
- *  of a chain is evaluated. Resets this.value to its original value, name
- *  for function nodes and symbol for symbol nodes.
+ *  Returns the string representation of the node chain. It's called when the
+ *  last node in a chain is to be evaluated as a text value or when an object
+ *  is referred to in a manner in which a string is expected. Resets value to
+ *  its original value; @name for function nodes or @symbol for symbol nodes.
  *
  *  @since 0.0.1
  */
@@ -151,13 +155,21 @@ $.Node.prototype.toString = function() {
   return value;
 };
 /*
+ *  Alias for node.toString(). $.node.node.node.$
+ *
+ *  @since 0.0.1
+ */
+Object.defineProperty($.Node.prototype, '$', {
+  get: function() { return this.toString(); }
+});
+/*
  *  Creates a new property or function in the current instance with name
  *  and/or value. When either the function or property is evaluated, the
  *  value is appended to the instance and the node is returned.
  *
  *  @since 0.0.1
  */
-$.Node.prototype.add = function(name, value) {
+$.Node.prototype.new = function(name, value) {
   if (this.hasOwnProperty(name)) return;
   if (value) {
     Object.defineProperty(this, name, {
@@ -187,20 +199,47 @@ $.Node.prototype.add = function(name, value) {
  *  @since 0.0.1
  */
 $('not', '!');
-/**
+/*
+ *  Creates an sugar node to allow:
  *
+ *  $.myVar.be(X) or $.myVar.equal._(X) → $.let.myVar.be(10)
+ *
+ *  @since 0.0.1
+ */
+$('let', ' ');
+/*
  *  Appends @value to the expression string.
  *
  *  @since 0.0.1
- *
  */
 $.Node.prototype._ = function(value) {
+  if (value instanceof Array) {
+
+  } else if (value instanceof Object) {
+
+  }
   this.value += $.util.quoteString(value);
   return this;
 };
-/**
+/*
+ *  Alias for node._(). Convenient when writing $.myVar.greater.equal.to()
  *
- *  Returns value[index]. Wraps @index in quotes if String.
+ *  @since 0.0.1
+ */
+$.Node.prototype.to = function(value) {
+  return this._(value);
+};
+/*
+ *  Alias for node.equal._(). Use with $.let to improve code readability.
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.be = function(value) {
+  return this.equal._(value);
+};
+/*
+ *  Returns value[index] as a string. Wraps @index in quotes if index is
+ *  of type String.
  *
  *  @since 0.0.1
  *
@@ -209,18 +248,91 @@ $.Node.prototype.at = function(index) {
   this.value += "[" + $.util.quoteString(index) + "]";
   return this;
 };
-/**
- *
+/*
  *  Updates value replacing @symbol with @append + @symbol in all nodes.
+ *
+ *  $.s1.s2.s3.s4.cat
  *
  *  @since 0.0.1
  */
-$.Node.prototype.cat = function(symbol,append) {
-  symbol = symbol || '$';
-  append = append || '.';
-  this.value = this.value.split(symbol).join(append+symbol).slice(1);
-  return this;
+Object.defineProperty($.Node.prototype, 'cat', {
+  get: function() {
+    this.value = this.value.split('$').join('.$').slice(1);
+    return this;
+  }
+});
+/*
+ *  Alias for node.plus.equal.to().
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.add = function(value) {
+  return this.plus.equal.to(value);
 };
+/*
+ *  Alias for node.minus.equal.to().
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.sub = function(value) {
+  return this.minus.equal.to(value);
+};
+/*
+ *  Alias for node.times.equal.to().
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.multiply = function(value) {
+  return this.times.equal._(value);
+};
+/*
+ *  Alias for node.by.equal.to().
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.divide = function(value) {
+  return this.by.equal.to(value);
+};
+/******************************************************************************
+ *  @since 0.0.1
+ */
+
+// $.Node.prototype.Post = function(name) {
+//   this.value += '$_POST[' + $.util.quote(name) + ']';
+//   return this;
+// };
+// $.Node.prototype.Get = function(name) {
+//   this.value += '$_POST[' + $.util.quote(name) + ']';
+//   return this;
+// };
+
+
+// $.Globals
+// $.Server
+// $.Get
+// $.Post
+// $.Files
+// $.Request
+// $.Session
+// $.Environment
+// $.Cookies
+
+
+// Superglobals — Superglobals are built-in variables that are always available in all scopes
+// $GLOBALS — References all variables available in global scope
+// $_SERVER — Server and execution environment information
+// $_GET — HTTP GET variables
+// $_POST — HTTP POST variables
+// $_FILES — HTTP File Upload variables
+// $_REQUEST — HTTP Request variables
+// $_SESSION — Session variables
+// $_ENV — Environment variables
+// $_COOKIE — HTTP Cookies
+// $php_errormsg — The previous error message
+// $HTTP_RAW_POST_DATA — Raw POST data
+// $http_response_header — HTTP response headers
+// $argc — The number of arguments passed to script
+// $argv — Array of arguments passed to script
 /*
  *  Namespace for general purpose string, parsing, etc. utitilities.
  *
@@ -276,8 +388,7 @@ $.util.argsToList = function(args) {
  *
  *  @since 0.0.1
  */
-$.util.jsToDictionary = function(array) {
-  console.log(array);
+$.util.jsToDictionary = function(object) {
   var output = '[', length = 0;
   for (var prop in object) {
     if (object.hasOwnProperty(prop)) {
@@ -375,18 +486,9 @@ $.util.tag = function(s) {
     // Trim the extra white space.
   };
 };
-/*
- *  Namespace for PHP HTTP method global arrays.
- *
- *  @since 0.0.1
- */
-$.method = {};
-/*
- */
-$.method.Post = function(name) {
-  return '$_POST[' + $.util.quote(name) + ']';
-};
-$.method.Get = function(name) {
-  return '$_GET[' + $.util.quote(name) + ']';
-};
 
+console.log('hello?')
+
+// aaa = $("Pooooooooooost")
+// console.log( aaa )
+// x();

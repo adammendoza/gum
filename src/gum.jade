@@ -1,25 +1,40 @@
-//-**
-   *
-   *  gum/mint.jade
+//-*
+   *  gum/gum.jade
    *
    *  PHP Mixin Library for Jade.
    *
    */
-include gum
+include mint
 
-//-**
-   *
+//-*
    *  Keeps track of processing mixins.
    *
    *  @since 0.0.1
    */
 - Mixin = {}
-- Mixin.php    = false
-- Mixin.if     = false
+//-*
+   *  Inside a <?php tag
+   */
+- Mixin.php = false
+//-*
+   *  Inside an If stament.
+   */
+- Mixin.if = false
+//-*
+   *  Inside a Switch stament.
+   */
 - Mixin.switch = false
-- Mixin.case   = false
-//-**
+//-*
+   *  Inside the first case in a Switch statement.
+   */
+- Mixin.case = false
+//-*
+   *  Forces object.toString() if object is [object Object].
    *
+   *  @since 0.0.1
+   */
+- Mixin.toString = function(object) { return object + '' }
+//-*
    *  Echoes opening/closing <?php ?> tags alternatively.
    *
    *  @since 0.0.1
@@ -30,8 +45,7 @@ mixin php
     !='<?php '
   else
     !='?>'
-//-**
-   *
+//-*
    *  Echoes a block and/or arguments inside <?php ?> tags.
    *  If none are passed, declares a list of variables with
    *  the attributes object. Variables declared here are also
@@ -56,12 +70,16 @@ mixin php
    *  @since 0.0.1
    */
 mixin -(before, after)
-
-
   if $.util.has(attributes)
     if $.util.has(attributes) === 'function'
+      - var args = []
+      each value, name in attributes
+        if name !== 'function'
+          - args.push($(name, '$'+name) + (typeof value === 'string' ?  '='+$.util.quote(value) : '') )
 
-
+      +-('function ' + $[attributes.function.slice(0,-2)](args), '{')
+      block
+      +-('', '}')
     else
       each value, name in attributes
         - var obj = { output: value, length: 0 }
@@ -81,37 +99,15 @@ mixin -(before, after)
 
         - $(name, '$'+name).length = obj.length
         +-($[name] + '=' + obj.output)
-
   else
     - before = before || ''
     - after = after || ';'
     +php
-    !=before
-    if block
-      block
-    !=after
-    +php
-
-
-
-
-
-
-
-
-//-**
-   *
-   *  Echoes the block inside /* */ comment tags.
-   *
-   *  @since 0.0.1
-   */
-mixin func
-  +-('function', '*/')
+    != Mixin.toString(before)
     block
-
-
-//-**
-   *
+    != Mixin.toString(after)
+    +php
+//-*
    *  Echoes the block inside /* */ comment tags.
    *
    *  @since 0.0.1
@@ -119,8 +115,7 @@ mixin func
 mixin --
   +-('/*', '*/')
     block
-//-**
-   *
+//-*
    *  Echoes a require_once("file[.php]") statement.
    *
    *  @since 0.0.1
@@ -128,8 +123,7 @@ mixin --
 mixin require(file)
   +-('require_once(', ');')
     != $.util.quote(file + (file.substr(-4) !== '.php' ? '.php': ''))
-//-**
-   *
+//-*
    *  Simple PHP echo statement.
    *
    *   +echo([args, ...])
@@ -147,9 +141,8 @@ mixin echo
     else
       each value in args
         - echo += $.util.quoteString(value) + '.'
-      !=echo.slice(0,-1)
-//-**
-   *
+      != echo.slice(0,-1)
+//-*
    *  Simple PHP die function.
    *
    *  @since 0.0.1
@@ -157,8 +150,7 @@ mixin echo
 mixin die
   +-('die(', ');')
     block
-//-**
-   *
+//-*
    *  PHP if / elseif statement helper. @private
    *
    *  @since 0.0.1
@@ -166,9 +158,7 @@ mixin die
 mixin _if(condition, elseif)
   - Mixin.if = true
   +-( (elseif ? 'elseif(' : 'if(') + condition + ')', ':')
-    block
-//-**
-   *
+//-*
    *  PHP if statement.
    *
    *  @since 0.0.1
@@ -176,8 +166,7 @@ mixin _if(condition, elseif)
 mixin if(condition)
   +_if (condition)
   block
-//-**
-   *
+//-*
    *  PHP elseif statement.
    *
    *  @since 0.0.1
@@ -185,8 +174,7 @@ mixin if(condition)
 mixin elseif(condition)
   +_if (condition, /*elseif*/true)
   block
-//-**
-   *
+//-*
    *  Echoes an if (!condition) block.
    *
    *  @since 0.0.1
@@ -195,8 +183,7 @@ mixin unless(condition)
   +if('!' + condition)
     block
   +endif
-//-**
-   *
+//-*
    *  PHP else statement. When inside a switch echoes the default case.
    *
    *  @since 0.0.1
@@ -208,8 +195,7 @@ mixin else
   else
     +-('else', ':')
   block
-//-**
-   *
+//-*
    *  PHP endif statement.
    *
    *  @since 0.0.1
@@ -217,33 +203,30 @@ mixin else
 mixin endif
   +- endif
   - Mixin.if = false
-//-**
-   *
+//-*
    *  @since 0.0.1
    */
 mixin switch(condition)
   - Mixin.switch = true, Mixin.case = true
   +php
-  !='switch(' + condition + '):'
+  != 'switch(' + condition + '):'
   block
   +- endswitch
   - Mixin.switch = false
-//-**
-   *
+//-*
    *  @since 0.0.1
    */
 mixin case(condition)
   if Mixin.case
-    !='case ' + $.util.quoteString(condition) + ':'
+    != 'case ' + $.util.quoteString(condition) + ':'
     +php
     - Mixin.case = false
   else
     +-('case ', ':')
-      !=$.util.quoteString(condition)
+      != $.util.quoteString(condition)
   block
   +- break
-//-**
-   *
+//-*
    *  PHP while loop.
    *
    *  @since 0.0.1
@@ -252,8 +235,7 @@ mixin while(condition)
   +-('while(' + condition, '):')
   block
   +- endwhile
-//-**
-   *
+//-*
    *  Echoes a simple PHP for loop.
    *
    *  +for(name=from to=N [by=N])
@@ -284,8 +266,7 @@ mixin for
               prop + '=' + prop + and + by + ')',':')
   block
   +- endfor
-//-**
-   *
+//-*
    *  Echoes a PHP foreach loop.
    *
    *  +each(in=array item)
@@ -302,8 +283,7 @@ mixin each
   +-('foreach(' + attributes.in + ' as ' + prop, "):")
   block
   +- endforeach
-//-**
-   *
+//-*
    *  Repeats the block $times times.
    *
    *  @times to repeat the block.
@@ -314,8 +294,7 @@ mixin repeat(times)
   - var i = 0
   while i++ < times
     block
-//-**
-   *
+//-*
    *  Echoes a yet block as described below.
    *
    *    data = callback()
@@ -335,8 +314,7 @@ mixin yet(callback,data)
     block
     +- unset(#{data})
   +endif
-//-**
-   *
+//-*
    *  Echoes a maybe block as described below.
    *
    *    if (block) {
@@ -360,65 +338,60 @@ mixin maybe(markup)
     +echo
       block
   +endif
-//-**
-   *
+//-*
    *  Echoes the block inside conditional IE<version> comments.
    *
    *  @since 0.0.1
    */
 mixin if_ie(version, condition)
   - condition = condition || ''
-  !='<!--[if ' + condition + ' IE ' + version + ']>'
+  != '<!--[if ' + condition + ' IE ' + version + ']>'
   block
-  !='<![endif]-->'
-//-**
-   *
+  != '<![endif]-->'
+//-*
    *  Echoes the block inside conditional lt IE<version> comments.
    *
    *  @since 0.0.1
    */
 mixin if_lt_ie(version)
   +if_ie(version, 'lt')
-//-**
-   *
+//-*
    *  Echoes the block inside conditional gt IE<version> comments.
    *
    *  @since 0.0.1
    */
 mixin if_gt_ie(version)
   +if_ie(version, 'gt')
-//-**
-   *
+//-*
    *  Echoes IE<version> conditional comments for the HTML element.
    *
    *  @since 0.0.1
    */
 mixin html_ie(version)
-  !='<!--[if IE ' + version + ']><html'
+  != '<!--[if IE ' + version + ']><html'
   if attributes.php
-    !=' <?php ' + attributes.php + '; ?>'
+    != ' <?php ' + attributes.php + '; ?>'
   //- Wraps the value in <?php ?> tags
 
   if attributes.lang
-    !=' lang=' + attributes.lang
+    != ' lang=' + attributes.lang
   //- Specifies the language of the element's content.
 
   if attributes.class
-    !=' class="' + attributes.class + '"'
+    != ' class="' + attributes.class + '"'
   //- Specifies one or more classnames for the element.
 
   if attributes.id
-    !=' id="' + attributes.id + '"'
+    != ' id="' + attributes.id + '"'
   //- Specifies a unique id for the element.
 
   if attributes.xmlns
-    !=' xmlns="' + attributes.xmlns + '"'
+    != ' xmlns="' + attributes.xmlns + '"'
   //- Specifies the XML namespace attribute.
 
-  !='>'
-  !='<![endif]-->'
-//-**
-   *
+  != '>'
+  != '<![endif]-->'
+//-*
    *  Echoes the html5shiv hack.
    *
    *  @since 0.0.1
@@ -426,5 +399,5 @@ mixin html_ie(version)
 mixin html5shiv(url)
   - url = url || 'http://html5shiv.googlecode.com/svn/trunk/html5.js'
   +if_lt_ie(9)
-    !='<script src="' + url + '"></script>'
-  !='<!--[if lt IE 9]><script src="' + url + '"></script><![endif]-->'
+    != '<script src="' + url + '"></script>'
+  != '<!--[if lt IE 9]><script src="' + url + '"></script><![endif]-->'

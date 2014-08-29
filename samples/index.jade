@@ -1,4 +1,4 @@
-include ../dist/gum
+//- include ../dist/gum
 include ../dist/mint
 
 
@@ -9,130 +9,158 @@ html(lang="en")
 
   body
 
-    - $("myFunc")
-    !=$.myFunc().myFunc().myFunc()
+    //- +-- This is a comment. Can you read this?
 
 
-    h1 Mint
-    h2 Variables
-    p
-      +-(bob=29 jon=30 sam="" dan="A string")
-
-      +if ($.bob.is.greater.than.jon)
-        p Bob wins!
-      +elseif ($.bob.is.less.than.jon)
-        p John wins!
-      +else
-        p Tie!
-      +endif
-
-    h2 Arrays
-    p
-      +-(arr=[10,20,3])
-
-      +if ($.arr.at(1).gt.arr.at(2))
-        p Mhum!!
-      +endif
-
-    h2 Dictionaries
-    p
-      +-(dict={a:10,b:20,c:3,animal:"wolf",insect:"bee"})
-
-      +if ($.dict.at("a").gt.dict.at("c"))
-        p Mhum
-        +if ($.dict.at("insect").is._("bee"))
-          p Uhwooooo!
-        +endif
-      +endif
-
-    h2 for block
-    p
-      +for(i=0 to=$.arr.length)
-        +echo("<hr>", $.arr.at($.i), "<hr>")
-
-    h2 foreach block
-    p
-      +each(in=$.arr myItem)
-        +echo("<hr>", $.myItem, "<hr>")
-
-    h2 concatenation
-    p
-      +-(a="This is"
-         b ="a"
-         c="long"
-         d="string")
-      +echo($.a.b.c.d.cat())
-
-    h2 Comments
-    p
-      +-- This is a comment.
+    h1 Variables
+    //- +-(bob=29 jon=30 sam="" dan="A string")
 
 
 
-    h2 Switch
-    +-(country = "Japan" )
+    //- - $("PostPost")
 
-    +switch ($.country)
-      +case ("Japan")
-        p 日本語
-        +if (false)
-          p Hello
-        +else
-          p Aha!
-        +endif
-
-      +case ("Venezuela")
-        p Español
-
-      +case ("U.S")
-        p English
-
-      +case ("Greece")
-        p ελληνικά
-
-      +else
-        p Other
+    //- +-($.bob.Pooooooooooost())
 
 
-    h2 While
-    +-(day=1)
-    +while($.day.is.less.than._(24))
-      p
-        +echo('Not Christmas yet. ', $.day.inc, '/12/2014')
-    +echo "Merry Christmas"
+    //- +if ($.bob.is.greater.than.jon)
+    //-   h2 OK. Bob is greater than Jon.
+    //- +elseif ($.bob.is.less.than.jon)
+    //-   h2 OK. Bob is less than Jon.
+    //- +else
+    //-   h2 OK. Tie.
+    //- +endif
+
+    //- h1 Arrays
+    //- +-(arr=[10,20,3])
+
+    //- +if ($.arr.at(1).gt.arr.at(2))
+    //-   h2 Arrays Ok.
+    //- +endif
+
+    //- h1 Dictionaries
+    //- +-(dict={a:10,b:20,c:3,animal:"wolf",insect:"bee"})
+
+    //- +if ($.dict.at("a").gt.dict.at("c"))
+    //-   h2 Dictionary subscripts OK.
+    //-   +if ($.dict.at("insect").is._("bee"))
+    //-     h3 Dictionary values OK.
+    //-   +endif
+    //- +endif
+
+    //- h1 For Statement
+    //- +for(i=0 to=$.arr.length)
+    //-   +echo("<hr>", $.arr.at($.i), "<hr>")
+    //- h2 OK.
+
+    //- h1 Each Statement
+    //- +each(in=$.arr myItem)
+    //-   +echo("<hr>", $.myItem, "<hr>")
+    //- h2 OK.
+
+    //- h1 String Concatenation
+    //- +-(a="This is " b ="a " c="long " d="string")
+    //- h3: +echo( $.a.b.c.d.cat )
+    //- h3: +echo( $.a.append.to(" another ").concat.d )
+    //- +-($.b.append.d)
+    //- h3: +echo( $.b )
+    //- h3: +echo( $.let._("This is an even longer ").concat.d )
+    //- h2 OK.
 
 
-    +-(version=$.method.Post('version'))
-    +-(os=$.method.Post('os'))
+    //- h1 Switch Statement
+    //- +-(country = "Japan" )
+    //- +switch ($.country)
+    //-   +case ("Japan")
+    //-     p 日本語
+    //-     +if (true)
+    //-       h2 If statements inside Switch OK.
+    //-     +else
+    //-       h2 Else statement inside Switch OK.
+    //-     +endif
 
-    +if($.version.and.os)
-      p: +echo("You seleted ", $.os, " version: ", $.version)
-      p Thank you!
-    +else
-      h2 Choose your OS
-      form(action="index.php" method="post")
-        select(name="os")
-          option Windows
-          option OSX
-          option Linux
-        p Other
-        input(name="version" type="text")
-        input(type="submit")
+    //-   +case ("Venezuela")
+    //-     p Español
 
-    +endif
+    //-   +case ("U.S")
+    //-     p English
 
+    //-   +case ("Greece")
+    //-     p ελληνικά
 
-    h2 Null
-    +if($.os.is.null)
-      p Nil is Null!
-    +endif
+    //-   +else
+    //-     p Other
+    //- h2 OK.
 
-    h2 Functions
-
-    //- - console.log( $('myGreeting') )
-
-    //- +-(function=$.F('myGreeting') firstName lastName)
-    //-   p: +echo("Hello there ", $.firstName, " ", $.lastName)
+    //- h1 While Statement
+    //- +-(day=1)
+    //- +while($.day.is.less.than._(24))
+    //-   p
+    //-     +echo('Not Christmas yet. ', $.day.inc, '/12/2014')
+    //- +echo "Merry Christmas"
+    //- h2 OK.
 
 
-    //- +- $.myGreeting("1", "2")
+    //- h1 POST Method
+    //- +-(version=$.method.Post('version'))
+    //- +-(os=$.method.Post('os'))
+
+    //- +if($.version.and.os)
+    //-   p: +echo("You seleted ", $.os, " version: ", $.version)
+    //-   p Thank you!
+    //- +else
+    //-   h2 Choose your OS
+    //-   form(action="index.php" method="post")
+    //-     select(name="os")
+    //-       option Windows
+    //-       option OSX
+    //-       option Linux
+    //-     p Other
+    //-     input(name="version" type="text")
+    //-     input(type="submit")
+    //- +endif
+    //- h2 OK.
+
+    //- h1 Null
+    //- +if($.os.is.null)
+    //-   p Nil is Null!
+    //- +endif
+    //- h2 OK.
+
+    //- h1 Functions
+    //- +-(function=$('myGreeting') firstName middleName="" lastName="")
+    //-   +if ($.lastName.is.null)
+    //-     +- $lastName = "B"
+    //-   +endif
+    //-   p: +echo("Hello there ", $.firstName, " ", $.middleName, " ", $.lastName)
+
+
+    //- +- myGreeting("J", "D")
+
+
+    //- h1 Assignment
+    //- +-(pressure=10.3)
+    //- +-($.let.pressure.be(5.1))
+    //- +-($.let.pressure.be(15.54))
+    //- +-($.let.pressure.be(35.512399))
+    //- +echo($.pressure)
+
+    //- h1  Post/Pre Increment.
+    //- +-(time=10)
+    //- +-($.time.inc)
+    //- +-($.let.inc.time)
+
+    //- +if ($.time.is._(12))
+    //-   h2 PASSED
+    //- +else
+    //-   h2 FAILED
+    //- +endif
+
+    //- h1  Post/Pre Decrement.
+    //- +-($.time.dec)
+    //- +-($.let.dec.time)
+
+    //- +if ($.time.is._(10))
+    //-   h2 PASSED
+    //- +else
+    //-   h2 FAILED
+    //- +endif
