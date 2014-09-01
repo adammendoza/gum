@@ -1,11 +1,10 @@
-//-*
+//-*!
    *  gum/gum.jade
    *
    *  PHP Mixin Library for Jade.
    *
    */
 include mint
-
 //-*
    *  Keeps track of processing mixins.
    *
@@ -15,7 +14,7 @@ include mint
 //-*
    *  Inside a <?php tag
    */
-- Mixin.php = false
+- Mixin.in = false
 //-*
    *  Inside an If stament.
    */
@@ -28,29 +27,28 @@ include mint
    *  Inside the first case in a Switch statement.
    */
 - Mixin.case = false
-//-*
-   *  Forces object.toString() if object is [object Object].
-   *
-   *  @since 0.0.1
-   */
-- Mixin.toString = function(object) { return object + '' }
+//- //-*
+//-    *  Forces object.toString() if object is of type [object Object].
+//-    *
+//-    *  @since 0.0.1
+//-    */
+//- - Mixin.toString = function(object) { return object + '' }
 //-*
    *  Echoes opening/closing <?php ?> tags alternatively.
    *
    *  @since 0.0.1
    */
 mixin php
-  - Mixin.php = !Mixin.php
-  if Mixin.php
+  - Mixin.in = !Mixin.in
+  if Mixin.in
     !='<?php '
   else
     !='?>'
 //-*
-   *  Echoes a block and/or arguments inside <?php ?> tags.
-   *  If none are passed, declares a list of variables with
-   *  the attributes object. Variables declared here are also
-   *  instantiated as $ nodes and thus can be used via $.var
-   *  inside +if or +while mixins.
+   *  Echoes a block with arguments inside <?php ?> tags. If none are passed,
+   *  declares a list of variables with the attributes object. Variables here
+   *  are instantiated as $ nodes and thus can be used via $.var inside if or
+   *  while mixins.
    *
    *    +- block
    *
@@ -74,43 +72,53 @@ mixin -(before, after)
     if $.util.has(attributes) === 'function'
       - var args = []
       each value, name in attributes
-        if name === 'function'
-          - $(value)
-        else
-          - args.push($(name, '$'+name) + (typeof value === 'string' ?  '='+$.util.quote(value) : '') )
+        if name !== 'function'
+          - var opt = typeof value === 'string' ? '=' + $.util.quote(value) : ''
+          - args.push( $(name, '$' + name) + opt )
 
-      +-('function ' + $[attributes.function](args), '{')
+      +-('function ' + $(attributes.function)(args), '{')
       block
       +-('', '}')
     else
       each value, name in attributes
-        - var obj = { output: value, length: 0 }
-
         if value instanceof Array
-          - obj.output = '[' + value + ']'
-          - obj.length = value.length
+          - value = $.util.arrayToString(value)
 
         else if value instanceof Object
-          - obj = $.util.jsToDictionary(value)
+          - value = $.util.objectToString(value)
 
-        else if typeof value === 'string'
-          if value.substr(0,1) === '$'
-            - obj.output = $.util.escapeQuotes(value)
-
+        else if isNaN(parseInt(value)) && typeof value === 'string'
+          if $[value.substr(0, value.indexOf('('))] || value.slice(0,1) === '$'
+              //- - value = $.util.escape(value)
           else
-            - obj.output = $.util.quote(value)
+            - value = $.util.quote(value)
+        else
+          - value = value + '' //- .toString() will crash if value is null
 
-        - $(name, '$'+name).length = obj.length
-        //- - console.log($[name] + "///")
-        +-($[name] + '=' + obj.output)
+        - $(name, '$' + name)
+        +-($[name] + '=' + $.util.escape(value))
   else
     - before = before || ''
     - after = after || ';'
     +php
-    != Mixin.toString(before)
+    != before + ''
     block
-    != Mixin.toString(after)
+    != after + ''
     +php
+//-*
+   *  Echoes a return statement.
+   *
+   *  @since 0.0.1
+   */
+mixin return(value)
+  +-('return ' + value)
+//-*
+   *  Alias for +return.
+   *
+   *  @since 0.0.1
+   */
+mixin ret(value)
+  +return(value)
 //-*
    *  Echoes the block inside /* */ comment tags.
    *
@@ -139,7 +147,7 @@ mixin require(file)
    */
 mixin echo
   - var echo = "", args = arguments
-  +-('echo')
+  +-('echo ')
     if block
       block
     else
@@ -195,10 +203,11 @@ mixin unless(condition)
 mixin else
   if Mixin.switch && !Mixin.if
     +-('default', ':')
+    block
     +- break
   else
     +-('else', ':')
-  block
+    block
 //-*
    *  PHP endif statement.
    *
@@ -207,6 +216,13 @@ mixin else
 mixin endif
   +- endif
   - Mixin.if = false
+//-*
+   *  Alias for +endif.
+   *
+   *  @since 0.0.1
+   */
+mixin fi
+  +endif
 //-*
    *  @since 0.0.1
    */
@@ -255,19 +271,38 @@ mixin while(condition)
    *  +for(k=100 to=-100 by=-10)
    *    ...
    *
+   *  @notes The mixin takes an attributes object instead of regular
+   *         arguments, so no spaces between the for and the open ()
+   *         are allowed. ✔ +for(...)  ✘ +for (...)
+   *
    *  @since 0.0.1
    */
 mixin for
-  - var prop = $.util.has(attributes);
-  - var from = attributes[prop];
-  - var to = attributes.to;
-  - var by = attributes.by || (from < to ? 1 : -1);
+  - var index = $.util.has(attributes)
+  - var from = attributes[index]
+  - var index = $(index, '$' + index).toString()
+
+  - var to = attributes.to
+  - var by = attributes.by
+
+  //-*
+     *  @todo:  Validate objects for each attribute
+     *
+
+  if isNaN(to)
+    - by = 1
+  else
+    - by = by || (from < to ? 1 : -1);
+
   - var sym = by > 0 ? '<' : '>';
   - var and = by > 0 ? '+' : '';
-  - prop = $(prop, '$' + prop).toString();
-  +-('for(' + prop + '=' + from + ';' +
-              prop + sym + to   + ';' +
-              prop + '=' + prop + and + by + ')',':')
+
+
+  //- +-($[index] + '=' + from)
+
+  +-('for(' + index + '=' + from + ';' +
+              index + sym + to   + ';' +
+              index + '=' + index + and + by + ')',':')
   block
   +- endfor
 //-*
@@ -282,11 +317,21 @@ mixin for
    *  @since 0.0.1
    */
 mixin each
-  - var prop = $.util.has(attributes, 2)
-  - prop = $(prop, '$'+prop).toString();
-  +-('foreach(' + attributes.in + ' as ' + prop, "):")
+  - var key = $.util.has(attributes, 2)
+  - var value = $.util.has(attributes, 3)
+  if value
+    - value = "=>" + $(value, '$' + value).toString()
+  - key = $(key, '$' + key).toString();
+  +-('foreach(' + attributes.in + ' as ' + key + value, "):")
   block
   +- endforeach
+
+//-*
+   *
+   *  @since 0.0.1
+   */
+mixin break
+  +- break
 //-*
    *  Repeats the block $times times.
    *
@@ -342,7 +387,7 @@ mixin maybe(markup)
     +echo
       block
   +endif
-//-*
+//-*??
    *  Echoes the block inside conditional IE<version> comments.
    *
    *  @since 0.0.1
@@ -374,7 +419,8 @@ mixin if_gt_ie(version)
 mixin html_ie(version)
   != '<!--[if IE ' + version + ']><html'
   if attributes.php
-    != ' <?php ' + attributes.php + '; ?>'
+    //- != '<?php ' + attributes.php + '; ?>'
+    +-(attributes.php)
   //- Wraps the value in <?php ?> tags
 
   if attributes.lang
@@ -405,3 +451,5 @@ mixin html5shiv(url)
   +if_lt_ie(9)
     != '<script src="' + url + '"></script>'
   != '<!--[if lt IE 9]><script src="' + url + '"></script><![endif]-->'
+
+

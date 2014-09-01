@@ -1,4 +1,4 @@
-/*
+/*!
  *  gum/mint.js
  *  (c) Jorge Bucaran 2014
  *
@@ -16,15 +16,7 @@
  *
  *  @since 0.0.1
  */
-$.util = {/* ♥ */};
-/*
- *  Returns true if @value is undefined.
- *
- *  @since 0.0.1
- */
-$.util.undefined = function(value) {
-  return typeof value === 'undefined';
-};
+$.util = {};
 /*
  *  Returns "value".
  *
@@ -50,8 +42,13 @@ $.util.quoteString = function(value) {
  *
  *  @since 0.0.1
  */
-$.util.escapeQuotes = function(value) {
-  return value.replace(/&quot;/g, '"');
+$.util.escape = function(value) {
+  value = value.replace(/&quot;/g, '"');
+  value = value.replace(/&amp;/g, '&');
+  value = value.replace(/&#0*39;/g, "'");
+  value = value.replace(/&gt;/g, '>');
+  value = value.replace(/&lt;/g, '<');
+  return value
 }
 /*
  *  Converts a JavaScript arguments array-ish object to a string
@@ -69,23 +66,46 @@ $.util.argsToList = function(args) {
   return '(' + [].join.call(args,',') + ')';
 };
 /*
- *  Converts a JavaScript object to a PHP dictionary declaration and
- *  returns an object like { output: String, length: Number }
+ *  Converts a JavaScript object to a PHP dictionary declaration string.
  *
  *  @since 0.0.1
  */
-$.util.jsToDictionary = function(object) {
-  var output = '[', length = 0;
+$.util.objectToString = function(object) {
+  if (object.toString() !== '[object Object]') return object.toString();
+  var output = '';
   for (var prop in object) {
     if (object.hasOwnProperty(prop)) {
-      output +=  $.util.quote(prop) + '=>' + object[prop] + ',';
-      length++;
+      output += $.util.quote(prop) + '=>';
+      if (object[prop] instanceof Array) {
+        output += $.util.arrayToString(object[prop]);
+      } else if (object[prop] instanceof Object) {
+        output += $.util.objectToString(object[prop]);
+      } else {
+        output += $.util.quoteString(object[prop]);
+      }
     }
+    output += ',';
   }
-  if (length > 0) {
-    output = output.slice(0,-1);
+  return '[' + output.slice(0,-1) + ']';
+};
+/*
+ *  Converts a JavaScript Array to a PHP dictionary declaration string.
+ *
+ *  @since 0.0.1
+ */
+$.util.arrayToString = function(array) {
+  var output = '';
+  for (var i=0; i < array.length; i++) {
+    if (array[i] instanceof Array) {
+      output += $.util.arrayToString(array[i]);
+    } else if (array[i] instanceof Object) {
+        output += $.util.objectToString(array[i]);
+    } else {
+      output += $.util.quoteString(array[i]);
+    }
+    output += ',';
   }
-  return { output: output + "]", length: length };
+  return '[' + output.slice(0,-1) + ']';
 };
 /*
  *  Returns the property at @index in @object.
@@ -100,7 +120,7 @@ $.util.jsToDictionary = function(object) {
       if (index === count++) return prop;
     }
   }
-  return null;
+  return '';
 };
 /*
  *  Wraps text in PHP tags as described below.
@@ -173,14 +193,14 @@ $.util.tag = function(s) {
   };
 };
 /*
- *  Alias for $.Function(name)() and $.Symbol. Creates a function $.Node,
+ *  Alias for $.Function(name) and $.Symbol. Creates a function $.Node,
  *  and returns its result. If a value is passed, creates a symbol $.Node
  *  and returns the object instead.
  *
  *  @since 0.0.1
  */
 function $(name, value) {
-  return $.util.undefined(value) ? $.Function(name) : $.Symbol(name, value);
+  return (typeof value === 'undefined') ? $.Function(name) : $.Symbol(name, value);
 };
 /*
  *  Returns a function $.Node and adds it to the $ namespace.
@@ -190,7 +210,8 @@ function $(name, value) {
  *  @since 0.0.1
  */
 $.Function = function(name) {
-  return $[name] = $.private.defineFunction(new $.Node(name));
+  if (!$[name]) $[name] = $.private.defineFunction(new $.Node(name));
+  return $[name];
 };
 /*
  *  Returns a symbol $.Node and adds it to the $ namespace.
@@ -201,8 +222,8 @@ $.Function = function(name) {
  *  @since 0.0.1
  */
 $.Symbol = function(name, value) {
-  // console.log("__"+name+"___"+(value||'.')+"__")
-  return $[name] = new $.Node(name, value || '') ;
+  if (!$[name]) $[name] = new $.Node(name, value || '') ;
+  return $[name];
 };
 /*
  *  Namespace for internal use-only functions and data.
@@ -227,14 +248,12 @@ $.private = {};
  */
 $.private.defineFunction = function(node, name) {
   return function() {
-    if (!name) node.value = '';
+    if (!name) node.output = '';
     /*
-     *  Reset value when starting a new node chain.
+     *  Reset the output when starting a new node chain.
      */
-      node.value = (node.value || '')  +
-                   (name || node.name) +
-                   $.util.argsToList(arguments);
-      return node;
+    node.output += (name || node.name) + $.util.argsToList(arguments);
+    return node;
   };
 };
 /*
@@ -258,17 +277,18 @@ $.global.nodes = [];
  *  Aliases for default operators.
  */
 $.global.symbols = {
-  not     : '!'   ,   null      : 'null'  ,
   or      : '||'  ,   and       : '&&'    ,
-  pow     : '**'  ,   mod       : '%'     ,
+  /*pow   : '**'  ,*/ mod       : '%'     ,
   gt      : '>'   ,   greater   : '>'     ,
   lt      : '<'   ,   less      : '<'     ,
-  than    : ''    ,   is        : '==='   ,
+  than    : ''    ,   equals    : '==='   ,
+  are     : '===' ,   is        : '==='   ,
   inc     : '++'  ,   dec       : '--'    ,
   plus    : '+'   ,   minus     : '-'     ,
   times   : '*'   ,   by        : '/'     ,
-  append  : '.='  ,   concat    : '.'     ,
-  equal   : '='
+  append  : '.='  ,   cat       : '.'     ,
+  equal   : '='   ,   set       : '='     ,
+  empty   : '""'  ,   null      : 'null'
 };
 /*
  *  Returns the superglobal alias for @name[@value].
@@ -291,13 +311,13 @@ $.global.symbols.forEach = function(callback){
   }
 };
 /*
- *  Main $.Node definition. Calls $.Node.prototype.new for each symbol in
- *  $.global.symbols and for each node in $.globals.nodes.
+ *  $.Node definition. Sets up new nodes with the default symbols and binds
+ *  them to $.globals.nodes.
  */
 $.Node = function(name, value) {
-  this.length = null; // Only for array symbol nodes.
   this.name = name;
-  this.value = value, this.symbol = value; // Undefined for function nodes.
+  this.value = value, this.output = value;
+  // Both undefined for function nodes.
 
   // Adds the symbols defined in $.global.symbols to the instance.
   +function(node){
@@ -306,7 +326,7 @@ $.Node = function(name, value) {
     });
   }(this);
 
-   // Adds the instance to each node in $.global.nodes and viceversa.
+  // Push this node to $.global.nodes and add all the nodes to each other.
   +function(node) {
     $.global.nodes.push(node);
     for (var i in $.global.nodes) {
@@ -317,17 +337,15 @@ $.Node = function(name, value) {
   }(this);
 };
 /*
- *  Returns the string representation of the node chain. It's called when the
- *  last node in a chain is to be evaluated as a text value or when an object
- *  is referred to in a manner in which a string is expected. Resets value to
- *  its original value; @name for function nodes or @symbol for symbol nodes.
+ *  Returns the output and resets it. It's called when the last node in a
+ *  chain is to be evaluated as text. Resets output to the original value.
  *
  *  @since 0.0.1
  */
 $.Node.prototype.toString = function() {
-  var value = this.value;
-  this.value = $.util.undefined(this.symbol) ? this.name : this.symbol;
-  return value;
+  var output = this.output;
+  this.output = this.value;
+  return output;
 };
 /*
  *  Alias for node.toString(). $.node.node.node.$
@@ -340,43 +358,69 @@ Object.defineProperty($.Node.prototype, '$', {
 /*
  *  Creates a new property or function in the current instance with name
  *  and/or value. When either the function or property is evaluated, the
- *  value is appended to the instance and the node is returned.
+ *  value is appended to the output and the node is returned.
  *
  *  @since 0.0.1
  */
 $.Node.prototype.new = function(name, value) {
   if (this.hasOwnProperty(name)) return;
 
-  if ( $.util.undefined(value) ) {
+  if ( typeof value === 'undefined' ) {
     this[name] = $.private.defineFunction(this, name);
   } else {
     Object.defineProperty(this, name, {
       get: function() {
-        if (value === "!" && this.value.substr(-3) === '===') {
-        // is.not should echo !==
-          this.value = this.value.slice(0,-3) + value + '==';
-
-        } else if ((value === '>' || value === '<') &&
-                  this.value.substr(-3) === '===') {
-        //is.greater/less should echo >/< instead of ===>/<
-          this.value = this.value.slice(0,-3) + value ;
-
-        } else {
-          this.value += value;
+        var output = value;
+        if (output === '===' && this.output.substr(-1) === '!') {
+          output = '=='; // not.equals → !==
         }
+        switch (this.output.substr(-3)) {
+          case '===': // last node → ===
+            switch(output) {
+              case '!': // is.not → !==
+                output = '!==';
+              case '>': // is.greater → >
+              case '<': // is.less → <
+                this.output = this.output.slice(0,-3);
+                break;
+
+              case '=': // is.equal → ===
+                output = '';
+                break;
+            }
+            break;
+
+          case '!==': // last node → !==
+            switch(output) {
+              case '=': // is.not.equal → !==
+                output = '';
+                break;
+            }
+            break;
+
+          case '>||': // is.greater.or.equal → >=
+          case '<||': // is.less.or.equal → <=
+            if (output === '=')
+            this.output = this.output.slice(0,-2);
+            break;
+        }
+        this.output += output;
         return this;
       }
     });
   }
 };
 /*
- *  Creates a node for the the not ! unary operator.
+ *  Creates a node for the the not, true and false operators.
  *
  *  @since 0.0.1
  */
 $.Symbol('not', '!');
+$.Symbol('true', 'true');
+$.Symbol('false', 'false');
 /*
- *  Semantic node. It's empy but it allows:
+ *  Empty node to allow binding prototype functions to the root $, as well
+ *  as writing more readable code on occasion:
  *
  *  $.myVar.be(X) or $.myVar.equal._(X)  →  $.let.myVar.be(10)
  *
@@ -390,15 +434,47 @@ $.Symbol('let');
  */
 $.Node.prototype._ = function(value) {
   if (value instanceof Array) {
-
+    value = $.util.arrayToString(value);
   } else if (value instanceof Object) {
-
+    value = $.util.objectToString(value);
+  } else {
+    value = $.util.quoteString(value);
   }
-  this.value += $.util.quoteString(value);
+  this.output += value;
   return this;
 };
 /*
- *  Alias for node._(). Convenient when writing $.myVar.greater.equal.to()
+ *  Root alias for node._()
+ *
+ *  @since 0.0.1
+ */
+$._ = function(value) {
+  return $.let._(value);
+}
+/*
+ *  Negates the arguments and returns !(expression) in parenthesis. Use it
+ *  when you need to bypass the default operator precedence.
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.no = function(value) {
+  this.output += '!(' + $.util.quoteString(value) + ')';
+  return this;
+};
+/*
+ *  Root alias for node.no()
+ *
+ *  @since 0.0.1
+ */
+$.no = function(value) {
+  return $.let.no(value);
+}
+/*
+ *  Alias for node._(). Convenient for writing readable conditions:
+ *
+ * $.var.is.equal.to()
+ * $.var.is.greater.or.equal.to()
+ * $.var.is.not.equal.to()
  *
  *  @since 0.0.1
  */
@@ -406,12 +482,12 @@ $.Node.prototype.to = function(value) {
   return this._(value);
 };
 /*
- *  Alias for node.equal._(). Use with $.let to improve code readability.
+ *  Alias for node.equal._(). Convenient when using $.let.
  *
  *  @since 0.0.1
  */
 $.Node.prototype.be = function(value) {
-  return this.equal._(value);
+  return this.set.to(value);
 };
 /*
  *  Returns value[index] as a string. Wraps @index in quotes if index is
@@ -421,7 +497,7 @@ $.Node.prototype.be = function(value) {
  *
  */
 $.Node.prototype.at = function(index) {
-  this.value += "[" + $.util.quoteString(index) + "]";
+  this.output += "[" + $.util.quoteString(index) + "]";
   return this;
 };
 /*
@@ -431,9 +507,9 @@ $.Node.prototype.at = function(index) {
  *
  *  @since 0.0.1
  */
-Object.defineProperty($.Node.prototype, 'cat', {
+Object.defineProperty($.Node.prototype, 'concat', {
   get: function() {
-    this.value = this.value.split('$').join('.$').slice(1);
+    this.output = this.output.split('$').join('.$').slice(1);
     return this;
   }
 });
@@ -461,6 +537,7 @@ $.Node.prototype.sub = function(value) {
 $.Node.prototype.multiply = function(value) {
   return this.times.equal._(value);
 };
+
 /*
  *  Alias for node.by.equal.to().
  *
@@ -470,13 +547,22 @@ $.Node.prototype.divide = function(value) {
   return this.by.equal.to(value);
 };
 /*
+ *  Returns this * 10^value string representation.
+ *
+ *  @since 0.0.1
+ */
+$.Node.prototype.e = function(value) {
+  this.output += "e"+value;
+  return this;
+};
+/*
  *  Alias for PHP $GLOBALS.
  *  References all variables available in global scope.
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Globals = function(name) {
-  this.value += $.global.get($.global.Globals, name);
+$.Node.prototype.Globals = function(value) {
+  this.output += $.global.get($.global.Globals, value);
   return this;
 };
 /*
@@ -484,7 +570,7 @@ $.Node.prototype.Globals = function(name) {
  *
  *  @since 0.0.1
  */
-$.Globals = function(name) { return $.let.Globals(name); }
+$.Globals = function(value) { return $.let.Globals(value); }
 /*
  *  Alias for PHP $_SERVER - Server and execution environment info.
  *
@@ -493,8 +579,8 @@ $.Globals = function(name) { return $.let.Globals(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Server = function(name) {
-  this.value += $.global.get($.global.Server, name);
+$.Node.prototype.Server = function(value) {
+  this.output += $.global.get($.global.Server, value);
   return this;
 };
 /*
@@ -502,7 +588,7 @@ $.Node.prototype.Server = function(name) {
  *
  *  @since 0.0.1
  */
-$.Server = function(name) { return $.let.Server(name); }
+$.Server = function(value) { return $.let.Server(value); }
 /*
  *  Alias for PHP $_GET - HTTP GET variables.
  *
@@ -511,8 +597,8 @@ $.Server = function(name) { return $.let.Server(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Get = function(name) {
-  this.value += $.global.get($.global.Get, name);
+$.Node.prototype.Get = function(value) {
+  this.output += $.global.get($.global.Get, value);
   return this;
 };
 /*
@@ -520,7 +606,7 @@ $.Node.prototype.Get = function(name) {
  *
  *  @since 0.0.1
  */
-$.Get = function(name) { return $.let.Get(name); }
+$.Get = function(value) { return $.let.Get(value); }
 /*
  *  Alias for PHP $_POST - HTTP POST variables.
  *
@@ -529,8 +615,8 @@ $.Get = function(name) { return $.let.Get(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Post = function(name) {
-  this.value += $.global.get($.global.Post, name);
+$.Node.prototype.Post = function(value) {
+  this.output += $.global.get($.global.Post, value);
   return this;
 };
 /*
@@ -538,7 +624,7 @@ $.Node.prototype.Post = function(name) {
  *
  *  @since 0.0.1
  */
-$.Post = function(name) { return $.let.Post(name); }
+$.Post = function(value) { return $.let.Post(value); }
 /*
  *  Alias for PHP $_FILES - HTTP File Upload variables.
  *
@@ -547,8 +633,8 @@ $.Post = function(name) { return $.let.Post(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Files = function(name) {
-  this.value += $.global.get($.global.Files, name);
+$.Node.prototype.Files = function(value) {
+  this.output += $.global.get($.global.Files, value);
   return this;
 };
 /*
@@ -556,7 +642,7 @@ $.Node.prototype.Files = function(name) {
  *
  *  @since 0.0.1
  */
-$.Files = function(name) { return $.let.Files(name); }
+$.Files = function(value) { return $.let.Files(value); }
 /*
  *  Alias for PHP $_REQUEST — HTTP Request variables
  *
@@ -565,8 +651,8 @@ $.Files = function(name) { return $.let.Files(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Request = function(name) {
-  this.value += $.global.get($.global.Request, name);
+$.Node.prototype.Request = function(value) {
+  this.output += $.global.get($.global.Request, value);
   return this;
 };
 /*
@@ -574,7 +660,7 @@ $.Node.prototype.Request = function(name) {
  *
  *  @since 0.0.1
  */
-$.Request = function(name) { return $.let.Request(name); }
+$.Request = function(value) { return $.let.Request(value); }
 /*
  *  Alias for $_SESSION — Session variables.
  *
@@ -583,8 +669,8 @@ $.Request = function(name) { return $.let.Request(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Session = function(name) {
-  this.value += $.global.get($.global.Session, name);
+$.Node.prototype.Session = function(value) {
+  this.output += $.global.get($.global.Session, value);
   return this;
 };
 /*
@@ -592,7 +678,7 @@ $.Node.prototype.Session = function(name) {
  *
  *  @since 0.0.1
  */
-$.Session = function(name) { return $.let.Session(name); }
+$.Session = function(value) { return $.let.Session(value); }
 /*
  *  Alias for $_ENV — Environment variables.
  *
@@ -601,8 +687,8 @@ $.Session = function(name) { return $.let.Session(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Env = function(name) {
-  this.value += $.global.get($.global.Env, name);
+$.Node.prototype.Env = function(value) {
+  this.output += $.global.get($.global.Env, value);
   return this;
 };
 /*
@@ -610,7 +696,7 @@ $.Node.prototype.Env = function(name) {
  *
  *  @since 0.0.1
  */
-$.Env = function(name) { return $.let.Env(name); }
+$.Env = function(value) { return $.let.Env(value); }
 /*
  *  Alias for $_COOKIE — HTTP Cookies.
  *
@@ -619,8 +705,8 @@ $.Env = function(name) { return $.let.Env(name); }
  *
  *  @since 0.0.1
  */
-$.Node.prototype.Cookies = function(name) {
-  this.value += $.global.get($.global.Cookies, name);
+$.Node.prototype.Cookies = function(value) {
+  this.output += $.global.get($.global.Cookies, value);
   return this;
 };
 /*
@@ -628,9 +714,4 @@ $.Node.prototype.Cookies = function(name) {
  *
  *  @since 0.0.1
  */
-$.Cookies = function(name) { return $.let.Cookies(name); }
-
-
-
-
-
+$.Cookies = function(value) { return $.let.Cookies(value); }

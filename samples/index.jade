@@ -1,171 +1,429 @@
-//- include ../dist/gum
 include ../dist/gum
-
 
 doctype html
 html(lang="en")
   head
-    title="Sweet Gum Test"
-
+    title="Gum+ Test"
+    style(type='text/css').
+      .ok:after {
+        color: green;
+        content: "..✔ Ok";
+      }
+      .fail:after {
+        color: red;
+        content: "..✘ Failed";
+      }
+      em {
+        color: blue;
+      }
   body
+    h2 Summary
+    p.
+      Gum lets you write PHP with Jade. While not intended as a PHP replacement
+      of any kind, Gum should offer a funky approach to most basic PHP tasks.
 
-    +-- This is a comment. Can you read this?
+    h2 Samples
+    ul
+      - var test = "Should declare and initialize variables."
 
+      +-(variable=42)
 
-    //- h1 Variables
-    +-(bob=29 jon=30 sam="" dan="A string")
-
-
-
-    //- //- - $("PostPost")
-
-    p!=$.bob.and.Post("ads")
-    p!=$.Post("DSFLSF")
-    p!=$.not.and.Post(";l,;ldsff")
-    p!=$.jon.bob
-
-
-    +if ($.bob.is.greater.than.jon)
-      h2 OK. Bob is greater than Jon.
-    +elseif ($.bob.is.less.than.jon)
-      h2 OK. Bob is less than Jon.
-    +else
-      h2 OK. Tie.
-    +endif
-
-    h1 Arrays
-    +-(arr=[10,20,3])
-
-    +if ($.arr.at(1).gt.arr.at(2))
-      h2 Arrays Ok.
-    +endif
-
-    h1 Dictionaries
-    +-(dict={a:10,b:20,c:3,animal:"wolf",insect:"bee"})
-
-    +if ($.dict.at("a").gt.dict.at("c"))
-      h2 Dictionary subscripts OK.
-      +if ($.dict.at("insect").is._("bee"))
-        h3 Dictionary values OK.
-      +endif
-    +endif
-
-    h1 For Statement
-    +for(i=0 to=$.arr.length)
-      +echo("<hr>", $.arr.at($.i), "<hr>")
-    h2 OK.
-
-    h1 Each Statement
-    +each(in=$.arr myItem)
-      +echo("<hr>", $.myItem, "<hr>")
-    h2 OK.
-
-    h1 String Concatenation
-    +-(a="This is " b ="a " c="long " d="string")
-    h3: +echo( $.a.b.c.d.cat )
-    h3: +echo( $.a.append.to(" another ").concat.d )
-    +-($.b.append.d)
-    h3: +echo( $.b )
-    h3: +echo( $.let._("This is an even longer ").concat.d )
-    h2 OK.
-
-
-    h1 Switch Statement
-    +-(country = "Japan" )
-    +switch ($.country)
-      +case ("Japan")
-        p 日本語
-        +if (true)
-          h2 If statements inside Switch OK.
-        +else
-          h2 Else statement inside Switch OK.
-        +endif
-
-      +case ("Venezuela")
-        p Español
-
-      +case ("U.S")
-        p English
-
-      +case ("Greece")
-        p ελληνικά
-
+      +if ($.variable)
+        li.ok= test
       +else
-        p Other
-    h2 OK.
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should compare variables against values."
 
-    h1 While Statement
-    +-(day=1)
-    +while($.day.is.less.than._(24))
-      p
-        +echo('Not Christmas yet. ', $.day.inc, '/12/2014')
-    +echo "Merry Christmas"
-    h2 OK.
+      +-(meat="beef" quality=10)
 
+      +if ($.meat.is.equal.to("beef").and.quality.is.equal.to(10))
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should handle > and < comparisons."
 
-    h1 POST Method
-    +-(version=$.let.Post('version'))
-    +-(os=$.let.Post('os'))
+      +-(budget=2000)
 
-    - console.log($)
+      +if ($.budget.is.greater.than._(1000).and.budget.is.less.than._(3000))
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should compare variables against other variables."
 
-    +if($.version.and.os)
-      p: +echo("You seleted ", $.os, " version: ", $.version)
-      p Thank you!
-    +else
-      h2 Choose your OS
-      form(action="index.php" method="post")
-        select(name="os")
-          option Windows
-          option OSX
-          option Linux
-        p Other
-        input(name="version" type="text")
-        input(type="submit")
-    +endif
-    h2 OK.
+      +-(lastYearBudget=1500 nextYearBudget=2000)
 
-    h1 Null
-    +if($.os.is.null)
-      p Nil is Null!
-    +endif
-    h2 OK.
+      +if ($.budget.is.greater.than.lastYearBudget)
+        +if ($.budget.equals.nextYearBudget)
+          li.ok= test
+        +else
+          li.fail=test
+        +fi
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Basic Arithmetic. Should calculate Earth's mass."
+      //- F = GmM/r^2 = ma → GM/r^2 = a → M = ar^2/G
+      +-(acceleration = 9.8
+         radius       = $._(6.4 * 6.4).e(12)
+         BigG         = $._(6.67).e(-11)
+        )
+      +-(massOfEarth= $.acceleration.times.radius.by.BigG)
 
-    h1 Functions
-    +-(function='myGreeting' firstName middleName="" lastName="")
-      +if ($.lastName.is.null)
-        +- $lastName = "B"
-      +endif
-      p: +echo("Hello there ", $.firstName, " ", $.middleName, " ", $.lastName)
+      +if ($.massOfEarth.is.greater.or.equal.to(6).e(24))
+        li.ok= test
+        li: ul: li.ok: +echo($.massOfEarth)
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should concatenate strings."
 
+      +-(firstString="spider" secondString="man")
+      +if ($.firstString.cat.secondString.is.equal.to("spiderman"))
+        +-(concatString = $.firstString.cat.secondString)
+        +if($.concatString.is.equal.to("spiderman"))
+          li.ok= test
+        +else
+          li.fail=test
+        +fi
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should use the mod % operator to check if a number is even/odd."
 
-    +- myGreeting("J", "D")
+      +-(oddNumber = 3)
+      +if ($.oddNumber.mod._(2).is.equal.to(0))
+        li.fail=test
+      +else
+        +if ($.oddNumber.mod._(3).is.equal.to(0))
+          li.ok= test
+        +else
+          li.fail=test
+        +fi
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should access the item at index 3 of an array"
 
+      +-(progLanguages=["C", "Go", "Python", "JavaScript"])
 
-    h1 Assignment
-    +-(pressure=10.3)
-    +-($.let.pressure.be(5.1))
-    +-($.let.pressure.be(15.54))
-    +-($.let.pressure.be(35.512399))
-    +echo($.pressure)
+      +if ($.progLanguages.at(3).is.equal.to("JavaScript"))
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should run the default case in a switch."
+      +-($.progLanguages.at(0).set.to("Scala"))
+      +switch ($.progLanguages.at(0))
+        +case ("C")
+          li.fail=test
+        +case ("Go")
+          li.fail=test
+        +case ("Python")
+          li.fail=test
+        +case ("JavaScript")
+          li.fail=test
+        +else
+          li.ok= test
+      //------------------------------------------------------------------------
+      - test = "Should run an else clause inside a switch."
+      +-(country = "Japan" lang = "Japanese")
+      +switch ($.country)
+        +case ("Japan")
+          +if ($.lang.is.not.equal.to("Japanese"))
+            li.fail=test
+          +else
+            li.ok= test
+          +fi
+        +else
+          li.fail=test
+      //-----------------------------------------------------------------------
+      - test = "Should print each element in an array with a for loop."
 
-    h1  Post/Pre Increment.
-    +-(time=10)
-    +-($.time.inc)
-    +-($.let.inc.time)
+      - $("count")
+      - $("array_push")
 
-    +if ($.time.is._(12))
-      h2 PASSED
-    +else
-      h2 FAILED
-    +endif
+      +-(languages=["English", "日本語", "ελληνικά", "Español"] ok=false)
 
-    h1  Post/Pre Decrement.
-    +-($.time.dec)
-    +-($.let.dec.time)
+      - console.log($.count().toString())
 
-    +if ($.time.is._(10))
-      h2 PASSED
-    +else
-      h2 FAILED
-    +endif
+      li
+        em= test
+        ul
+          +for(idx=0 to=4)
+            +-($.ok.set.to(true))
+            li.ok: +echo($.languages.at($.idx))
+        +if($.ok)
+          li.ok= test
+        +else
+          li.fail= test
+        +fi
+      //-----------------------------------------------------------------------
+      - test = "Should used 2 nested for loops to compute all prime numbers until 100."
+
+      +-(shouldBePrimes = []
+         primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
+                   43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
+
+      li
+        em= test
+        ul
+          +for(i=2 to=100)
+            +for(j=2 to="$i/$j")
+              +if($.no($.i.mod.j))
+                +break
+              +fi
+
+            +if($.j.is.greater.than.i.by.j)
+              +echo(" ", $.i)
+              +-($.array_push($.shouldBePrimes, $.i))
+            +fi
+
+          +if($.count($.primes).is.count($.shouldBePrimes))
+            br
+            +for(i=0 to=$.count($.primes))
+              +if($.primes.at($.i).is.shouldBePrimes.at($.i))
+                b: +echo(" ", $.shouldBePrimes.at($.i))
+              +else
+                li.fail=test
+                +break
+              +fi
+          +else
+            li.fail=test
+          +fi
+        +if($.i.is.count($.primes))
+          li.ok=test
+        +else
+          li.fail=test
+        +fi
+      //------------------------------------------------------------------------
+      - test = "Should print each element in an array with a for each loop."
+
+      li
+        em= test
+        ul
+          +each(in=$.languages lang)
+            li.ok: +echo($.lang)
+      //------------------------------------------------------------------------
+      - test = "Should loop an array and echo a message for each element with a switch."
+
+      +-(gods=["Zeus", "Poseidon", "Hades", "Athena", "Joe"])
+
+      li
+        em= test
+        ul
+          +each(in=$.gods god)
+            +switch ($.god)
+              +case ("Zeus")
+                li.ok: +echo($.god.cat.to(": God of Thunder."))
+              +case ("Poseidon")
+                li.ok: +echo($.god.cat.to(": God of the Sea."))
+              +case ("Hades")
+                li.ok: +echo($.god.cat.to(": Goddess of Wisdom."))
+              +case ("Athena")
+                li.ok: +echo($.god.cat.to(": God of the Underworld."))
+              +else
+                li.ok: +echo("<b>", $.god, "</b>", ": is not in my list.")
+      //------------------------------------------------------------------------
+      - test = "Should test using the not operator at the beginning of a chain."
+      +if ($.not.false)
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should test double negation."
+      +if ($.not.not.true)
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should handle nested ifs."
+      +-(fridayThe13thSequels=1)
+      +if ($.fridayThe13thSequels.is.equal.to(1))
+
+        +-($.let.fridayThe13thSequels.be(2))
+        +if ($.fridayThe13thSequels.is.equal.to(2))
+
+          +-($.let.fridayThe13thSequels.be(5))
+          +if ($.fridayThe13thSequels.is.equal.to(5))
+
+            +-($.let.fridayThe13thSequels.be(12))
+            +if ($.fridayThe13thSequels.is.equal.to(12))
+
+              +-($.let.fridayThe13thSequels.inc)
+              +if ($.fridayThe13thSequels.is.less.than._(14))
+
+                li.ok= test
+              +else
+                li.fail=test
+              +fi
+            +else
+              li.fail=test
+            +fi
+          +else
+            li.fail=test
+          +fi
+        +else
+          li.fail=test
+        +fi
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should handle increment ++."
+      +-(languageC=11)
+      +-($.let.languageC.inc)
+      +if ($.languageC.is.less.than._(14))
+        +-($.let.languageC.inc)
+        +if ($.languageC.is.less.than._(14))
+          +-($.let.languageC.inc)
+          +if ($.languageC.is.less.than._(14))
+            li.fail=test
+          +else
+            li.ok= test
+          +fi
+        +else
+          li.fail=test
+        +fi
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should handle descrement --."
+      +-($.let.languageC.dec)
+      +if ($.languageC.is.less.than._(14))
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should handle is.null."
+
+      +-(ie6 = null)
+      +if ($.ie6.is.null)
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should do a while loop."
+
+      +-(chances=0)
+      li= test
+        ul
+          +while($.chances.are.less.than._(3))
+            li.ok: +echo('Chance #', $.chances.inc)
+
+      +if ($.chances.are.equal.to(3))
+        li.ok= test
+      +else
+        li.fail=test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should create a dictionary and check items at different keys."
+      +-(profile={firstName:"Jorge",
+                  lastName:"Bucaran",
+                  age:29,
+                  city:"Tokyo",
+                  snack:"Almonds"})
+
+      +if ($.profile.at("age").is.equal.to(29).and.
+             profile.at("snack").is.equal.to("Almonds"))
+
+        +if ($.profile.at("firstName").is.equal.to("Jorge").and.
+               profile.at("lastName").is.equal.to("Bucaran"))
+          li.ok= test
+        +else
+          li.fail=test
+        +fi
+      +else
+        li.fail=test
+      +fi
+
+      //------------------------------------------------------------------------
+      - test = "Should loop and echo all keys and values in a dictionary."
+      - $('ucwords')
+
+      li
+        em= test
+        ul
+          +each(in=$.profile key value)
+            li: +echo($.ucwords($.key)," : ",$.value)
+          li.ok= test
+      //------------------------------------------------------------------------
+      - test = "Should create a function and call it."
+
+      +-(function='greet' english spanish="Hola!" japanese="こんにちは！")
+        +if($.english.is.empty)
+          +-($.english.set.to("Hi!"))
+        +fi
+        +return($.english.cat.spanish.cat.japanese)
+
+      +-(oneResult = $.greet("Howdy", "Epa!", "よっ")
+         anotherResult = $.greet("Howdy", "Epa!", "よっ"))
+      +if($.oneResult.is.anotherResult)
+        li.ok= test
+      +else
+        li.fail= test
+      +fi
+      //------------------------------------------------------------------------
+      - test = "Should create an object with nested arrays and print it."
+
+      li
+        em= test
+        ul
+          +-(scoreTable={Giants:[13,22,18],
+                         Bolts:[20,19,11],
+                         Stars:[23,14,20]}
+             ok = true)
+
+          +each(in=$.scoreTable team scores)
+            li
+              +if($.team.is.equal.to("Giants").or.
+                    team.is.equal.to("Bolts").or.
+                    team.is.equal.to("Stars"))
+
+                +echo($.team)
+
+                +for(i=0 to=$.count($.scores))
+                  +if($.team.is.equal.to("Giants"))
+                    +if($.scores.is.not.equal.to([13,22,18]))
+                      span.fail
+                      +-($.ok.set.to(false))
+                      +break
+                    +fi
+                  +fi
+                  +if($.team.is.equal.to("Bolts"))
+                    +if($.scores.is.not.equal.to([20,19,11]))
+                      span.fail
+                      +-($.ok.set.to(false))
+                      +break
+                    +fi
+                  +fi
+                  +if($.team.is.equal.to("Stars"))
+                    +if($.scores.is.not.equal.to([23,14,20]))
+                      span.fail
+                      +-($.ok.set.to(false))
+                      +break
+                    +fi
+                  +fi
+                  +echo(" ", $.scores.at($.i))
+              +else
+                +-($.ok.set.to(false))
+                span.fail= test
+              +fi
+          +if($.ok)
+            li.ok= test
+          +else
+            li.fail= test
+          +fi
