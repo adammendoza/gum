@@ -3,13 +3,13 @@
 
 + [What's this?](#what)
 + [Installation](#install)
-+ [Gum.jade](#gum)
++ [Gum](#gum)
   + [Variables & Functions](#varfunc)
   + [Control](#control)
     + [If](#if)
     + [Switch](#switch)
     + [For](#for)
-+ [Mint.js](#mint)
++ [$](#$)
 + [Get Social](#social)
 + [Release History](#history)
 
@@ -17,9 +17,9 @@
 Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks.
 
 ## <a name="install"></a>Installation
-Download with `bower install gum` and start using it in your Jade project with one line `include gum`.
+Download with `bower install gum` and start using it in your Jade projects with one line `include gum`.
 
-Clone to explore, modify and / or compile the code yourself. If you can help finding bugs and improving the library it's a plus!
+Clone to explore, modify and / or compile the code yourself. If you can help finding bugs and improving the library it's a ++!
 
     git clone git://github.com/bucaran/gum.git
     cd gum
@@ -32,9 +32,9 @@ Clone to explore, modify and / or compile the code yourself. If you can help fin
 
     +-(meat="beef" countries=["Japan", "Argentina", "U.S"])
 
-The above will register `meat` and `countries` as variables in the global namespace `$` and echo the PHP to declare and initialize them. See [Mint.js](#mint) below for more information about `$`.
+The above will register `meat` and `countries` as variables in the global namespace `$` and echo the PHP to declare and initialize them. See [$](#$) below for more information.
 
-Also, there is the simple `+- block` to echo the block inside `<?php ?>` tags. In addition,
+There is also `+- block` to echo the block of text inside `<?php ?>` tags. In addition,
 
     +-(before, after)
      [block]
@@ -93,11 +93,11 @@ Similarly,
 
 registers `item` in `$` and echoes a `foreach` loop that runs for each item in `array`.
 
-## <a name="mint"></a>Mint.js
+## <a name="api"></a>$
 
 We use blocks in Jade in order to implement [mixins](http://jade-lang.com/reference/mixins/) that nest and behave like the control flow structures we know and love. But without blocks to describe the logical conditions, variables or other extra parameters, we need to *hack* the arguments and [attributes](http://jade-lang.com/reference/attributes/) to make our mixins work akin to real control structures.
 
-We can use regular strings to embed the PHP code and it will work just as well, or we can use Mint to create JavaScript objects that represent either functions or symbols; constants, variables, operators, etc., and link them together in a chain that returns the resulting PHP expression as a string.
+We can use regular strings to embed the PHP code and it will work, or we can use `$` to create JavaScript objects that represent either functions or symbols; constants, variables, operators, etc., and link them together in a chain that returns the resulting PHP expression as a string.
 
     $('getData')
     +if($.getData('query'))
@@ -120,7 +120,7 @@ Cloning the repository from GitHub will include the `samples/` directory where y
 
 ### <a name="history"></a>Release History
 
-##### 0.0.1 / 2014-08-19
+##### 0.0.1 / 2014-09-4
 
   * Initial Release.
 

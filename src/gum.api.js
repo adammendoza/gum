@@ -1,5 +1,5 @@
 /*!
- *  gum/mint.js
+ *  gum/gum.api.js
  *  (c) Jorge Bucaran 2014
  *
  *  Create objects that represent either functions or symbols, i.e, constants,
@@ -13,7 +13,7 @@
  *  a second argument to $(name, value) with the output to echo when $.object
  *  is evaluated.
  *
- *  Mint is useful when manipulating several symbols in complex expressions:
+ *  Gum is useful when manipulating several symbols in complex expressions:
  *
  *    a.is.not.b.or.c.is.f('data')
  *   ↓
@@ -148,8 +148,8 @@ $.gum.has = function(object, index) {
   return '';
 };
 /*
- *  Alias for $.Func and $.Symbol. Creates a function $.Node, and returns
- *  it. If a value is passed, creates a symbol $.Node instead.
+ *  Alias for $.Func and $.Symbol. Creates a function $.Node. If a value is
+ *  passed, creates a symbol $.Node instead.
  */
 function $(name, value) {
   return (typeof value === 'undefined') ? $.Func(name) : $.Symbol(name, value);
@@ -373,11 +373,7 @@ $.Node.prototype.at = function(index) {
   this.output += '[' + $.gum.parse(index) + ']';
   return this;
 };
-/*
- *  Updates value replacing @symbol with @append + @symbol in all nodes.
- *
- *  $.s1.s2.s3.s4.cat
- */
+// Concatenates all $variable nodes. $.s1.s2.s3.s4.cat
 Object.defineProperty($.Node.prototype, 'concat', {
   get: function() {
     this.output = this.output.split('$').join('.$').slice(1);
@@ -397,109 +393,57 @@ $.Node.prototype.e = function(value) {
   this.output += 'e'+value;
   return this;
 };
-/*
- *  Alias for PHP $GLOBALS.
- *  References all variables available in global scope.
- */
+// PHP $GLOBALS and root alias.
 $.Node.prototype.Globals = function(value) {
   this.output += $.global.get($.global.Globals, value);
   return this;
 };
-// Root alias for $.Node.prototype.Globals.
 $.Globals = function(value) { return $.let.Globals(value); }
-/*
- *  Alias for PHP $_SERVER - Server and execution environment info.
- *
- *  Contains information such as headers, paths, and script locations.
- *  The entries in this array are created by the web server.
- */
+// PHP $_SERVER - Server and execution environment info and root alias.
 $.Node.prototype.Server = function(value) {
   this.output += $.global.get($.global.Server, value);
   return this;
 };
-// Root alias for $.Node.prototype.Server.
 $.Server = function(value) { return $.let.Server(value); }
-/*
- *  Alias for PHP $_GET - HTTP GET variables.
- *
- *  An associative array of variables passed to the
- *  current script via the URL parameters.
- */
+// PHP $_GET - HTTP GET variables and root alias.
 $.Node.prototype.Get = function(value) {
   this.output += $.global.get($.global.Get, value);
   return this;
 };
-// Root alias for $.Node.prototype.Get.
 $.Get = function(value) { return $.let.Get(value); }
-/*
- *  Alias for PHP $_POST - HTTP POST variables.
- *
- *  An associative array of variables passed to the
- *  current script via the HTTP POST method.
- */
+// PHP $_POST - HTTP POST variables and root alias.
 $.Node.prototype.Post = function(value) {
   this.output += $.global.get($.global.Post, value);
   return this;
 };
-// Root alias for $.Node.prototype.Post.
 $.Post = function(value) { return $.let.Post(value); }
-/*
- *  Alias for PHP $_FILES - HTTP File Upload variables.
- *
- *  An associative array of items uploaded to the current script via the
- *  HTTP POST method.
- */
+// PHP $_FILES - HTTP File Upload variables and root alias.
 $.Node.prototype.Files = function(value) {
   this.output += $.global.get($.global.Files, value);
   return this;
 };
-// Root alias for $.Node.prototype.Files.
 $.Files = function(value) { return $.let.Files(value); }
-/*
- *  Alias for PHP $_REQUEST — HTTP Request variables
- *
- *  An associative array that by default contains the contents of $_GET,
- *  $_POST and $_COOKIE.
- */
+// $_REQUEST — HTTP Request variables and root alias.
 $.Node.prototype.Request = function(value) {
   this.output += $.global.get($.global.Request, value);
   return this;
 };
-// Root alias for $.Node.prototype.Request.
 $.Request = function(value) { return $.let.Request(value); }
-/*
- *  Alias for $_SESSION — Session variables.
- *
- *  An associative array containing session variables available to the
- *  current script.
- */
+// $_SESSION — Session variables and root alias.
 $.Node.prototype.Session = function(value) {
   this.output += $.global.get($.global.Session, value);
   return this;
 };
-// Root alias for $.Node.prototype.Session.
 $.Session = function(value) { return $.let.Session(value); }
-/*
- *  Alias for $_ENV — Environment variables.
- *
- *  An associative array of variables passed to the current script via the
- *  environment method. See PHP docs.
- */
+// $_ENV — Environment variables and root alias.
 $.Node.prototype.Env = function(value) {
   this.output += $.global.get($.global.Env, value);
   return this;
 };
-// Root alias for $.Node.prototype.Env.
 $.Env = function(value) { return $.let.Env(value); }
-/*
- *  Alias for $_COOKIE — HTTP Cookies.
- *
- *  An associative array of variables passed to the current script via
- *  HTTP Cookies.
- */
+// $_COOKIE — HTTP Cookies and root alias.
 $.Node.prototype.Cookies = function(value) {
   this.output += $.global.get($.global.Cookies, value);
   return this;
 };
-// Root alias for $.Node.prototype.Cookies.
 $.Cookies = function(value) { return $.let.Cookies(value); }
