@@ -153,7 +153,7 @@ html(lang="en")
 
       +-(languages=["English", "日本語", "ελληνικά", "Español"] ok=false)
 
-      - console.log($.count().toString())
+      //- - console.log($.count().toString())
 
       li
         em= test
@@ -361,21 +361,21 @@ html(lang="en")
             li: +echo($.ucwords($.key)," : ",$.value)
           li.ok= test
       //------------------------------------------------------------------------
-      - test = "Should create a function and call it."
+    - test = "Should create a function and call it."
 
-      +-(function='greet' english spanish="Hola!" japanese="こんにちは！")
-        +if($.english.is.empty)
-          +-($.english.set.to("Hi!"))
-        +fi
-        +return($.english.cat.spanish.cat.japanese)
-
-      +-(oneResult = $.greet("Howdy", "Epa!", "よっ")
-         anotherResult = $.greet("Howdy", "Epa!", "よっ"))
-      +if($.oneResult.is.anotherResult)
-        li.ok= test
-      +else
-        li.fail= test
+    +-(function='greet' english spanish="Hola!" japanese="こんにちは！")
+      +if($.english.is.empty)
+        +-($.english.set.to("Hi!"))
       +fi
+      +return($.english.cat.spanish.cat.japanese)
+
+    +-(oneResult = $.greet("Howdy", "Epa!", "よっ")
+       anotherResult = $.greet("Howdy", "Epa!", "よっ"))
+    +if($.oneResult.is.anotherResult)
+      li.ok= test
+    +else
+      li.fail= test
+    +fi
       //------------------------------------------------------------------------
       - test = "Should create an object with nested arrays and print it."
 
@@ -427,3 +427,5 @@ html(lang="en")
           +else
             li.fail= test
           +fi
+
+

@@ -2,42 +2,25 @@
    *  gum/gum.jade
    *
    *  PHP Mixin Library for Jade.
-   *
    */
-include mint
-//-*
-   *  Keeps track of processing mixins.
-   *
-   *  @since 0.0.1
-   */
+include gum.api
+//-
+  Keeps track of processing mixins.
 - Mixin = {}
-//-*
-   *  Inside a <?php tag
-   */
+//-
+  Inside a <?php tag
 - Mixin.in = false
-//-*
-   *  Inside an If stament.
-   */
+//-
+  Inside an If stament.
 - Mixin.if = false
-//-*
-   *  Inside a Switch stament.
-   */
+//-
+  Inside a Switch stament.
 - Mixin.switch = false
-//-*
-   *  Inside the first case in a Switch statement.
-   */
+//-
+  Inside the first case in a Switch statement.
 - Mixin.case = false
-//- //-*
-//-    *  Forces object.toString() if object is of type [object Object].
-//-    *
-//-    *  @since 0.0.1
-//-    */
-//- - Mixin.toString = function(object) { return object + '' }
-//-*
-   *  Echoes opening/closing <?php ?> tags alternatively.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes opening/closing <?php ?> tags alternatively.
 mixin php
   - Mixin.in = !Mixin.in
   if Mixin.in
@@ -57,93 +40,60 @@ mixin php
    *
    *    +-(a=Number b=String c=Array d=Object)
    *
-   *    +-(func=myFunc a b c)
+   *    +-(function=myFunc a b c)
    *      block
    *
    *  @before       Text to prepend to the code inside <?php?>.
    *  @after        Text to append to the code inside <?php?>.
    *  @block        Code to render inside <?php?>.
    *  @attributes   List of variables to declare / initialize.
-   *
-   *  @since 0.0.1
    */
 mixin -(before, after)
-  if $.util.has(attributes)
-    if $.util.has(attributes) === 'function'
+  if $.gum.has(attributes)
+    if $.gum.has(attributes) === 'function'
       - var args = []
       each value, name in attributes
         if name !== 'function'
-          - var opt = typeof value === 'string' ? '=' + $.util.quote(value) : ''
-          - args.push( $(name, '$' + name) + opt )
+          - var opt = typeof value === 'string' ? '=' + $.gum.quote(value) : ''
+          - args.push( $(name, '$' + name).$ + opt )
 
       +-('function ' + $(attributes.function)(args), '{')
       block
       +-('', '}')
     else
       each value, name in attributes
-        if value instanceof Array
-          - value = $.util.arrayToString(value)
-
-        else if value instanceof Object
-          - value = $.util.objectToString(value)
-
-        else if isNaN(parseInt(value)) && typeof value === 'string'
-          if $[value.substr(0, value.indexOf('('))] || value.slice(0,1) === '$'
-              //- - value = $.util.escape(value)
-          else
-            - value = $.util.quote(value)
-        else
-          - value = value + '' //- .toString() will crash if value is null
-
-        - $(name, '$' + name)
-        +-($[name] + '=' + $.util.escape(value))
+        +-($(name, '$' + name).$ + '=' + $.gum.decode($.gum.parse(value)))
   else
-    - before = before || ''
-    - after = after || ';'
     +php
-    != before + ''
+    != before ? $.gum.decode($.gum.parse(before)) : ''
     block
-    != after + ''
+    != after ? $.gum.decode($.gum.parse(after)) : ';'
     +php
-//-*
-   *  Echoes a return statement.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes a return statement.
 mixin return(value)
-  +-('return ' + value)
-//-*
-   *  Alias for +return.
-   *
-   *  @since 0.0.1
-   */
+  +-('return ' + $.gum.toString(value))
+//-
+  Alias for +return.
 mixin ret(value)
   +return(value)
-//-*
-   *  Echoes the block inside /* */ comment tags.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes the block inside /* */ comment tags.
 mixin --
   +-('/*', '*/')
     block
-//-*
-   *  Echoes a require_once("file[.php]") statement.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes a require_once("file[.php]") statement.
 mixin require(file)
   +-('require_once(', ');')
-    != $.util.quote(file + (file.substr(-4) !== '.php' ? '.php': ''))
+    != $.gum.quote(file + (file.substr(-4) !== '.php' ? '.php': ''))
 //-*
-   *  Simple PHP echo statement.
+   *  Simplified PHP echo statement.
    *
    *   +echo([args, ...])
    *   +echo block
    *   +echo
    *     block
-   *
-   *  @since 0.0.1
    */
 mixin echo
   - var echo = "", args = arguments
@@ -152,54 +102,36 @@ mixin echo
       block
     else
       each value in args
-        - echo += $.util.quoteString(value) + '.'
+        - echo += $.gum.squote(value) + '.'
       != echo.slice(0,-1)
-//-*
-   *  Simple PHP die function.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Convenience wrapper for PHP die function.
 mixin die
   +-('die(', ');')
     block
-//-*
-   *  PHP if / elseif statement helper. @private
-   *
-   *  @since 0.0.1
-   */
+//-
+  PHP if / elseif statement helper. @internal
 mixin _if(condition, elseif)
   - Mixin.if = true
   +-( (elseif ? 'elseif(' : 'if(') + condition + ')', ':')
-//-*
-   *  PHP if statement.
-   *
-   *  @since 0.0.1
-   */
+//-
+  PHP if statement.
 mixin if(condition)
   +_if (condition)
   block
-//-*
-   *  PHP elseif statement.
-   *
-   *  @since 0.0.1
-   */
+//-
+  PHP elseif statement.
 mixin elseif(condition)
   +_if (condition, /*elseif*/true)
   block
-//-*
-   *  Echoes an if (!condition) block.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes an if (!condition) block.
 mixin unless(condition)
   +if('!' + condition)
     block
   +endif
-//-*
-   *  PHP else statement. When inside a switch echoes the default case.
-   *
-   *  @since 0.0.1
-   */
+//-
+  PHP else statement. When inside a switch echoes the default case.
 mixin else
   if Mixin.switch && !Mixin.if
     +-('default', ':')
@@ -208,24 +140,17 @@ mixin else
   else
     +-('else', ':')
     block
-//-*
-   *  PHP endif statement.
-   *
-   *  @since 0.0.1
-   */
+//-
+  PHP endif statement.
 mixin endif
   +- endif
   - Mixin.if = false
-//-*
-   *  Alias for +endif.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Alias for +endif.
 mixin fi
   +endif
-//-*
-   *  @since 0.0.1
-   */
+//-
+  PHP switch statement
 mixin switch(condition)
   - Mixin.switch = true, Mixin.case = true
   +php
@@ -233,24 +158,20 @@ mixin switch(condition)
   block
   +- endswitch
   - Mixin.switch = false
-//-*
-   *  @since 0.0.1
-   */
+//-
+  Case keyword
 mixin case(condition)
   if Mixin.case
-    != 'case ' + $.util.quoteString(condition) + ':'
+    != 'case ' + $.gum.squote(condition) + ':'
     +php
     - Mixin.case = false
   else
     +-('case ', ':')
-      != $.util.quoteString(condition)
+      != $.gum.squote(condition)
   block
   +- break
-//-*
-   *  PHP while loop.
-   *
-   *  @since 0.0.1
-   */
+//-
+  PHP while loop.
 mixin while(condition)
   +-('while(' + condition, '):')
   block
@@ -274,11 +195,9 @@ mixin while(condition)
    *  @notes The mixin takes an attributes object instead of regular
    *         arguments, so no spaces between the for and the open ()
    *         are allowed. ✔ +for(...)  ✘ +for (...)
-   *
-   *  @since 0.0.1
    */
 mixin for
-  - var index = $.util.has(attributes)
+  - var index = $.gum.has(attributes)
   - var from = attributes[index]
   - var index = $(index, '$' + index).toString()
 
@@ -297,7 +216,6 @@ mixin for
   - var sym = by > 0 ? '<' : '>';
   - var and = by > 0 ? '+' : '';
 
-
   //- +-($[index] + '=' + from)
 
   +-('for(' + index + '=' + from + ';' +
@@ -313,31 +231,24 @@ mixin for
    *
    *  Creates a $ node with @item and generates a foreach loop that runs
    *  for each item in @array.
-   *
-   *  @since 0.0.1
    */
 mixin each
-  - var key = $.util.has(attributes, 2)
-  - var value = $.util.has(attributes, 3)
+  - var key = $.gum.has(attributes, 2)
+  - var value = $.gum.has(attributes, 3)
   if value
     - value = "=>" + $(value, '$' + value).toString()
   - key = $(key, '$' + key).toString();
   +-('foreach(' + attributes.in + ' as ' + key + value, "):")
   block
   +- endforeach
-
 //-*
-   *
-   *  @since 0.0.1
-   */
+  Break keyword.
 mixin break
   +- break
 //-*
    *  Repeats the block $times times.
    *
    *  @times to repeat the block.
-   *
-   *  @since 0.0.1
    */
 mixin repeat(times)
   - var i = 0
@@ -353,8 +264,6 @@ mixin repeat(times)
    *
    *  Generates a block that calls a function @callback, stores the
    *  result in @data and inserts the block if @data returns !null.
-   *
-   *  @since 0.0.1
    */
 mixin yet(callback,data)
   - data = data || '$data';
@@ -376,8 +285,6 @@ mixin yet(callback,data)
    *  if not null wrapped in markup optionally. We are passing markup
    *  as an argument and the condition as a block, so is not possible
    *  to use +if() that expects the condition to be its argument.
-   *
-   *  @since 0.0.1
    */
 mixin maybe(markup)
   +-('if(', '):')
@@ -387,35 +294,24 @@ mixin maybe(markup)
     +echo
       block
   +endif
-//-*??
-   *  Echoes the block inside conditional IE<version> comments.
-   *
-   *  @since 0.0.1
-   */
+//- @todo: consider moving all below this point to its own file??
+//-
+  Echoes the block inside conditional IE<version> comments.
 mixin if_ie(version, condition)
   - condition = condition || ''
   != '<!--[if ' + condition + ' IE ' + version + ']>'
   block
   != '<![endif]-->'
-//-*
-   *  Echoes the block inside conditional lt IE<version> comments.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes the block inside conditional lt IE<version> comments.
 mixin if_lt_ie(version)
   +if_ie(version, 'lt')
-//-*
-   *  Echoes the block inside conditional gt IE<version> comments.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes the block inside conditional gt IE<version> comments.
 mixin if_gt_ie(version)
   +if_ie(version, 'gt')
-//-*
-   *  Echoes IE<version> conditional comments for the HTML element.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes IE<version> conditional comments for the HTML element.
 mixin html_ie(version)
   != '<!--[if IE ' + version + ']><html'
   if attributes.php
@@ -441,11 +337,8 @@ mixin html_ie(version)
 
   != '>'
   != '<![endif]-->'
-//-*
-   *  Echoes the html5shiv hack.
-   *
-   *  @since 0.0.1
-   */
+//-
+  Echoes the html5shiv.
 mixin html5shiv(url)
   - url = url || 'http://html5shiv.googlecode.com/svn/trunk/html5.js'
   +if_lt_ie(9)
