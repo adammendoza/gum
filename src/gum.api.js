@@ -101,6 +101,8 @@ $.gum.decode = function(value) {
 // Returns true if value is a function() or $variable.
 $.gum.isFuncOrVar = function(value) {
   var name = value.substr(0, value.indexOf('('));
+  name = name.substr(0, 'function '.length) === 'function ' ?
+    name.substr('function '.length) : name;
   return 'undefined' !== typeof $[name] || '$' === value.slice(0,1);
 };
 // Converts Strings, Arrays, Objects and $.Node objects to a PHP expression.
@@ -221,7 +223,7 @@ $.global.symbols = {
 };
 // Returns the superglobal alias for @name[@value].
 $.global.get = function(name, value) {
-  return name.toUpperCase() + '[' + $.gum.squote(value) + ']';
+  return name.toUpperCase() + '[' + $.gum.parse(value) + ']';
 };
 // Invokes @callback for each property in $.global.symbols.
 $.global.symbols.forEach = function(callback){

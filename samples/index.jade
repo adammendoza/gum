@@ -17,12 +17,14 @@ html(lang="en")
         color: blue;
       }
   body
+
     h2 Summary
     p.
       Gum lets you write PHP with Jade. While not intended as a PHP replacement
       of any kind, Gum should offer a funky approach to most basic PHP tasks.
 
     h2 Samples
+    //------------------------------------------------------------------------
     ul
       - var test = "Should declare and initialize variables."
 
@@ -78,7 +80,7 @@ html(lang="en")
 
       +if ($.massOfEarth.is.greater.or.equal.to(6).e(24))
         li.ok= test
-        li: ul: li.ok: +echo($.massOfEarth)
+        ul: li.ok: +echo($.massOfEarth)
       +else
         li.fail=test
       +fi
@@ -349,7 +351,6 @@ html(lang="en")
       +else
         li.fail=test
       +fi
-
       //------------------------------------------------------------------------
       - test = "Should loop and echo all keys and values in a dictionary."
       - $('ucwords')
@@ -361,21 +362,21 @@ html(lang="en")
             li: +echo($.ucwords($.key)," : ",$.value)
           li.ok= test
       //------------------------------------------------------------------------
-    - test = "Should create a function and call it."
+      - test = "Should create a function and call it."
 
-    +-(function='greet' english spanish="Hola!" japanese="こんにちは！")
-      +if($.english.is.empty)
-        +-($.english.set.to("Hi!"))
+      +-(function='greet' english spanish="Hola!" japanese="こんにちは！")
+        +if($.english.is.empty)
+          +-($.english.set.to("Hi!"))
+        +fi
+        +return($.english.cat.spanish.cat.japanese)
+
+      +-(oneResult = $.greet("Howdy", "Epa!", "よっ")
+         anotherResult = $.greet("Howdy", "Epa!", "よっ"))
+      +if($.oneResult.is.anotherResult)
+        li.ok= test
+      +else
+        li.fail= test
       +fi
-      +return($.english.cat.spanish.cat.japanese)
-
-    +-(oneResult = $.greet("Howdy", "Epa!", "よっ")
-       anotherResult = $.greet("Howdy", "Epa!", "よっ"))
-    +if($.oneResult.is.anotherResult)
-      li.ok= test
-    +else
-      li.fail= test
-    +fi
       //------------------------------------------------------------------------
       - test = "Should create an object with nested arrays and print it."
 
