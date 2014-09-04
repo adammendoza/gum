@@ -1,5 +1,7 @@
 //-*!
-   *  gum/gum.jade
+   *  github.com/bucaran/gum
+   *
+   *  (c) 2014 Jorge Bucaran
    *
    *  PHP Mixin Library for Jade.
    */
@@ -257,21 +259,6 @@ mixin repeat(times)
   - var i = 0
   while i++ < times
     block
-//-*
-   *  Echoes a yet block as described below.
-   *
-   *    data = callback()
-   *    if (data) {
-   *      block
-   *    }
-   */
-mixin yet(callback,data)
-  - data = data || '$data';
-  +- #{data} = #{callback}
-  +if(data)
-    block
-    +- unset(#{data})
-  +endif
 //-*
    *  Echoes a maybe block as described below.
    *

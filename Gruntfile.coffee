@@ -28,7 +28,6 @@ module.exports = (grunt) ->
   require("load-grunt-tasks") grunt
   grunt.registerTask "build", ["js2jade", "copy:jade"]
   grunt.registerTask "default", ["build", "samples", "watch"]
-
   grunt.registerTask "samples", ->
    #
    #  Edit samples config in package.json
@@ -40,7 +39,7 @@ module.exports = (grunt) ->
         expand: true
         cwd: samples.path
         src: ["*.jade"]
-        dest: samples.local
+        dest: samples.localhost
         ext: ".php"
       ]
     grunt.config.merge
@@ -49,4 +48,4 @@ module.exports = (grunt) ->
         tasks: ["samples"]
 
     grunt.task.run "jade"
-    grunt.log.writeln "Building samples in " + samples.local.cyan
+    grunt.log.writeln "Building samples in " + samples.localhost.cyan

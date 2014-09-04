@@ -1,6 +1,7 @@
 /*!
- *  gum/gum.api.js
- *  (c) Jorge Bucaran 2014
+ *  github.com/bucaran/gum
+ *
+ *  (c) 2014 Jorge Bucaran
  *
  *  Create objects that represent either functions or symbols, i.e, constants,
  *  variables, operators, etc, and link them together in a chain that returns
@@ -20,22 +21,24 @@
  *    'a !== b && c === f("data")'
  */
 'use strict';
-// Used across the class.
 $.gum = {};
 /*
- *  Wraps text in PHP tags as described below.
+ *  Wraps text in PHP tags as described below:
  *
- *  [$0]<?php {[$0 | $1]} [{$3 | ;}] ?>[$2]
+ *     <?php $0; ?>
+ *  $0 <?php $1; ?>
+ *  $0 <?php $1; ?> $2
  */
-$.gum.php = function () {
-  var pre = '<?php ', php = '', pos = ' ?>';
-  if (arguments.length > 0) php = arguments[0];
-  if (arguments.length > 1) {
-    pre = php + pre;
-    php = arguments[1];
+$.gum.php = function (pre, php, pos) {
+  pre = pre || '';
+  if (php) {
+    php = $.gum.parse(php);
+  } else {
+    php = $.gum.parse(pre);
+    pre = '';
   }
-  if (arguments.length > 2) pos += arguments[2];
-  return pre + php + (arguments.length > 3 ? arguments[3] : ';') + pos;
+  pos = pos || '';
+  return  $.gum.toString(pre) + '<?php ' + php + ';?>' + $.gum.toString(pos);
 }
 /*
  *  For a string such as 'element#id.class1.class2' returns an object:

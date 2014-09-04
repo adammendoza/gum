@@ -1,12 +1,12 @@
 {
   "name": "gum",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A no-sweat Jade+JS PHP library",
   "main": "Gruntfile.js",
   "samples": {
-    "enabled": true,
+    "enabled": false,
     "path": "samples/",
-    "local": "../../www/gum"
+    "localhost": "../../www/gum"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -36,7 +36,6 @@
     "grunt": "^0.4.5",
     "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-jade": "^0.12.0",
-    "grunt-contrib-jasmine": "^0.7.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-js2jade": "^0.0.15",
     "load-grunt-tasks": "^0.6.0"

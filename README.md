@@ -1,4 +1,4 @@
-# Gum v0.0.1 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
+# Gum v0.1.0 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
 > Write PHP in Jade.
 
 + [What's this?](#what)
@@ -10,6 +10,7 @@
     + [Switch](#switch)
     + [For](#for)
 + [$](#$)
++ [Samples](#samples)
 + [Get Social](#social)
 + [Release History](#history)
 
@@ -108,9 +109,9 @@ The above adds a `getData` Function object to `$` that returns a PHP expression 
 
 In practice, it's easier to declare variables directly in Gum with `+-` since that will generate the PHP as well.
 
-### <a name="samples"></a>Samples
+## <a name="samples"></a>Samples
 
-Cloning the repository from GitHub will include the `samples/` directory where you can find the examples available for this release.
+This repository includes a `samples/` directory where you can find the examples available for this release. Edit the `samples.enabled` and `samples.localhost` configuration in the `package.json` file to enable the samples.
 
 ## <a name="social"></a>Get Social
 
@@ -120,7 +121,7 @@ Cloning the repository from GitHub will include the `samples/` directory where y
 
 ### <a name="history"></a>Release History
 
-##### 0.0.1 / 2014-09-4
+##### 0.1.0 / 2014-09-4
 
   * Initial Release.
 
