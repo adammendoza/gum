@@ -14,10 +14,10 @@
 + [Get Social](#social)
 + [Release History](#history)
 
-## <a name="what"></a>What's this?
+# <a name="what"></a>What's this?
 Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks.
 
-## <a name="install"></a>Installation
+# <a name="install"></a>Installation
 Download with `bower install gum` and start using it in your Jade projects with one line `include gum`.
 
 Clone to explore, modify and / or compile the code yourself. If you can help finding bugs and improving the library it's a ++!
@@ -26,10 +26,10 @@ Clone to explore, modify and / or compile the code yourself. If you can help fin
     cd gum
     npm install
 
-## <a name="gum"></a>Gum.jade
+# <a name="gum"></a>Gum.jade
 `gum.jade` is a mixin library that generates PHP. Think things like `+if`, `+while`, `+for`, `+each`, they are all there. Use `+-` to declare and initialize variables, define and invoke functions or just echo out plain old PHP.
 
-### <a name="varfunc"></a>Variables & Functions
+## <a name="varfunc"></a>Variables & Functions
 
     +-(meat="beef" countries=["Japan", "Argentina", "U.S"])
 
@@ -47,11 +47,11 @@ will output the block wrapped in `before` and `after` strings inside the `<?php 
 
 declares a PHP function `myFunc`. The above will also add the `myFunc` identifier as a Function object to `$`.
 
-### <a name="control"></a>Control
+## <a name="control"></a>Control
 
 There are several control structure-like mixins available in Gum that generate the corresponding PHP. Check the available _documentation_ for more details.
 
-#### <a name="if"></a>If..elseif..else
+### <a name="if"></a>If..elseif..else
 
     +if(condition)
       ...
@@ -63,7 +63,7 @@ There are several control structure-like mixins available in Gum that generate t
 
 Echoes a PHP if stament. Ideally we would do away with the closing `+fi` but that means `+elseif` and `+else` would have to be nested inside the `+if`.
 
-#### <a name="switch"></a>Switch
+### <a name="switch"></a>Switch
 
     +switch(condition)
       +case(condition)
@@ -75,7 +75,7 @@ Echoes a PHP if stament. Ideally we would do away with the closing `+fi` but tha
 
 Use `+else` to handle default cases.
 
-#### <a name="for"></a>For
+### <a name="for"></a>For
 
     +for(i=0 to=10)
       ...
@@ -94,7 +94,7 @@ Similarly,
 
 registers `item` in `$` and echoes a `foreach` loop that runs for each item in `array`.
 
-## <a name="api"></a>$
+# <a name="api"></a>$
 
 We use blocks in Jade in order to implement [mixins](http://jade-lang.com/reference/mixins/) that nest and behave like the control flow structures we know and love. But without blocks to describe the logical conditions, variables or other extra parameters, we need to *hack* the arguments and [attributes](http://jade-lang.com/reference/attributes/) to make our mixins work akin to real control structures.
 
@@ -109,19 +109,19 @@ The above adds a `getData` Function object to `$` that returns a PHP expression 
 
 In practice, it's easier to declare variables directly in Gum with `+-` since that will generate the PHP as well.
 
-## <a name="samples"></a>Samples
+# <a name="samples"></a>Samples
 
 This repository includes a `samples/` directory where you can find the examples available for this release. Edit the `samples.enabled` and `samples.localhost` configuration in the `package.json` file to enable the samples.
 
-## <a name="social"></a>Get Social
+# <a name="social"></a>Get Social
 
   * [GitHub](http://github.com/bucaran)
   * [Twitter](http://twitter.com/jbucaran)
   * [Homepage](http://bucaran.me)
 
-### <a name="history"></a>Release History
+## <a name="history"></a>Release History
 
-##### 0.1.0 / 2014-09-4
+#### 0.1.0 / 2014-09-4
 
   * Initial Release.
 
