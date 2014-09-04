@@ -35,12 +35,12 @@ Clone to explore, modify and / or compile the code yourself. If you can help fin
 
 The above will register `meat` and `countries` as variables in the global namespace `$` and echo the PHP to declare and initialize them. See [$](#$) below for more information.
 
-There is also `+- block` to echo the block of text inside `<?php ?>` tags. In addition,
+There is also `+- block` to echo the block of text inside `<?php ?>` tags and
 
     +-(before, after)
      [block]
 
-will output the block wrapped in `before` and `after` strings inside the `<?php ?>` tags. Note that `before` and `after` are echoed even if no block is passed. Finally,
+to output the block wrapped in `before` and `after` strings inside the `<?php ?>` tags. Note that `before` and `after` are echoed even if no block is passed. Finally,
 
     +-(function=myFunc a b[=c])
      block
@@ -67,9 +67,9 @@ Echoes a PHP if stament. Ideally we would do away with the closing `+fi` but tha
 
     +switch(condition)
       +case(condition)
-
+      
       +case ...
-
+      
       +else
         ...
 
