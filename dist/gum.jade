@@ -1,0 +1,276 @@
+//-*!
+   *  gum/gum.jade
+   *
+   *  PHP Mixin Library for Jade.
+   */
+include gum.api.jade
+//-
+  Keeps track of processing mixins.
+- Mixin = {}
+//-
+  Inside a <?php tag
+- Mixin.in = false
+//-
+  Inside an If stament.
+- Mixin.if = false
+//-
+  Inside a Switch stament.
+- Mixin.switch = false
+//-
+  Inside the first case in a Switch statement.
+- Mixin.case = false
+//-
+  Flag for internal raw echoing.
+- Mixin.DontParse = true
+//-
+  Echoes opening/closing <?php ?> tags alternatively.
+mixin php
+  - Mixin.in = !Mixin.in
+  if Mixin.in
+    !='<?php '
+  else
+    !='?>'
+//-*
+   *  Echoes a block with arguments inside <?php ?> tags. If none are passed,
+   *  declares a list of variables with the attributes object. Variables here
+   *  are instantiated as $ nodes and thus can be used via $.var inside if or
+   *  while mixins.
+   *
+   *    +- block
+   *
+   *    +-(before, after)
+   *      [block]
+   *
+   *    +-(a=Number b=String c=Array d=Object)
+   *
+   *    +-(function=myFunc a b c)
+   *      block
+   *
+   *  @before       Expression to prepend to the code inside <?php?>.
+   *  @after        Expression to append to the code inside <?php?>.
+   *  @dontParse    Handle @before and @after as strings.
+   *  @block        Code to render inside <?php?>.
+   *  @attributes   List of variables to declare / initialize.
+   */
+mixin -(before, after, dontParse)
+  if $.gum.has(attributes)
+    if $.gum.has(attributes) === 'function'
+      - var args = []
+      each value, name in attributes
+        if name !== 'function'
+          - var opt = 'string' === typeof value ? '=' + $.gum.quote(value) : ''
+          - args.push( $(name, '$' + name).$ + opt )
+
+      +-('function ' + $(attributes.function).apply($, args).$, '{',
+        Mixin.DontParse)
+      block
+      +-('', '}')
+    else
+      each value, name in attributes
+        +-($(name, '$' + name).$ + '=' + $.gum.decode($.gum.parse(value)))
+  else
+    +php
+    != before ? (dontParse ? before : $.gum.parse(before)) : ''
+    block
+    != after || ';'
+    +php
+//-
+  Echoes a return statement.
+mixin return(value)
+  +-('return ' + $.gum.toString(value))
+//-
+  Alias for +return.
+mixin ret(value)
+  +return(value)
+//-
+  Echoes the block inside /* */ comment tags.
+mixin --
+  +-('/*', '*/', Mixin.DontParse)
+    block
+//-
+  Echoes a require_once("file[.php]") statement.
+mixin require(file)
+  +-('require_once(', ');', '', Mixin.DontParse)
+    != $.gum.quote(file + (file.substr(-4) !== '.php' ? '.php': ''))
+//-*
+   *  Simplified echo statement.
+   *
+   *   +echo([args, ...])
+   *   +echo block
+   *   +echo
+   *     block
+   */
+mixin echo
+  - var echo = "", args = arguments
+  +-('echo ', '', Mixin.DontParse)
+    if block
+      block
+    else
+      each value in args
+        - echo += $.gum.parse(value) + '.'
+      != echo.slice(0,-1)
+//-
+  Convenience wrapper for die function.
+mixin die
+  +-('die(', ');', Mixin.DontParse)
+    block
+//-
+  If..Elseif statement helper. @internal
+mixin _if(condition, elseif, unless)
+  - Mixin.if = true
+  +-( (elseif ? 'elseif(' : 'if(') +
+      (unless ? '!(' : '') +
+      $.gum.toString(condition) +
+      (unless ? ')' : '') +  ')', ':', Mixin.DontParse)
+//-
+  Ef statement.
+mixin if(condition)
+  +_if (condition)
+  block
+//-
+  Elseif statement.
+mixin elseif(condition)
+  +_if (condition, true)
+  block
+//-
+  Echoes an if (!condition) block.
+mixin unless(condition)
+  +_if(condition, /*elseif*/false, /*unless*/true)
+  block
+  +endif
+//-
+  Else statement. When inside a switch echoes the default case.
+mixin else
+  if Mixin.switch && !Mixin.if
+    +-('default', ':', Mixin.DontParse)
+    block
+    +- break
+  else
+    +-('else', ':', Mixin.DontParse)
+    block
+//-
+  Endif statement.
+mixin endif
+  +- endif
+  - Mixin.if = false
+//-
+  Alias for +endif.
+mixin fi
+  +endif
+//-*
+  Break keyword.
+mixin break
+  +- break
+//-
+  Switch statement
+mixin switch(condition)
+  - Mixin.switch = true, Mixin.case = true
+  +php
+  != 'switch(' + $.gum.toString(condition) + '):'
+  block
+  +- endswitch
+  - Mixin.switch = false
+//-
+  Case keyword
+mixin case(condition)
+  if Mixin.case
+    != 'case ' + $.gum.parse(condition) + ':'
+    +php
+    - Mixin.case = false
+  else
+    +-('case ', ':', Mixin.DontParse)
+      != $.gum.parse(condition)
+  block
+  +break
+//-
+  While loop.
+mixin while(condition)
+  +-('while(' + $.gum.toString(condition), '):', Mixin.DontParse)
+  block
+  +- endwhile
+//-*
+   *  Simplified for loop.
+   *
+   *  +for(iterator=from to=N [by=N])
+   *
+   *  Creates a $ node with @name and generates a for loop that runs
+   *  @to - @from times at @by intervals. If not set, @by increments
+   *  by 1 if @from < @to, or -1 if viceversa.
+   *
+   *  +for(i=0 to=10)
+   *    ...
+   *  +for(j=10 to=0)
+   *    ...
+   *  +for(k=100 to=-100 by=-10)
+   *    ...
+   *
+   *  @caution ✔ +for(...)  ✘ +for (...)
+   */
+mixin for
+  - var iterator = $.gum.has(attributes)
+  - var from = attributes[iterator]
+  - var iterator = $(iterator, '$' + iterator).$
+  - var to = attributes.to
+  - var by = attributes.by
+
+  if isNaN(from) || isNaN(to)
+    - by = by || 1
+  else
+    - by = by || (from < to ? 1 : -1);
+
+  - var glt = isNaN(by) || by > 0 ? '<' : '>';
+  - var and = isNaN(by) || by > 0 ? '+' : '-';
+
+  - iterator = $.gum.toString(iterator)
+
+  +-('for(' + iterator + '=' + $.gum.toString(from) + ';' +
+              iterator + glt + $.gum.toString(to)   + ';' +
+              iterator + '=' + iterator + and + $.gum.toString(by) + ')', ':',
+    Mixin.DontParse)
+  block
+  +- endfor
+//-*
+   *  Foreach loop.
+   *
+   *  +each(in=array item)
+   *    ...
+   *
+   *  Creates a $ node with @item and generates a foreach loop that runs
+   *  for each item in @array.
+   */
+mixin each
+  - var key = $.gum.has(attributes, 2)
+  - var value = $.gum.has(attributes, 3)
+  if value
+    - value = '=>' + $(value, '$' + value).$
+  - key = $(key, '$' + key).$;
+  +-('foreach(' + $.gum.toString(attributes.in) + ' as ' + key + value, '):',
+    Mixin.DontParse)
+  block
+  +- endforeach
+//-*
+   *  Repeats the block $times times.
+   *
+   *  @times to repeat the block.
+   */
+mixin repeat(times)
+  - var i = 0
+  while i++ < times
+    block
+//-*
+   *  Echoes a maybe block as described below.
+   *
+   *    if (block) {
+   *      <markup id="" class="">
+   *      echo block
+   *      </markup>
+   *    }
+   */
+mixin maybe(markup)
+  +-('if(', '):', Mixin.DontParse)
+    block
+  - markup = $.gum.markupToObject(markup)
+  #{markup.name}(id=markup.id class=markup.class)
+    +echo
+      block
+  +endif
