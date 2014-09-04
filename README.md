@@ -1,4 +1,4 @@
-# Gum v0.1.0 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
+# Gum v0.1.1 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
 > Write PHP in Jade.
 
 + [What's this?](#what)
@@ -67,9 +67,9 @@ Echoes a PHP if stament. Ideally we would do away with the closing `+fi` but tha
 
     +switch(condition)
       +case(condition)
-      
+
       +case ...
-      
+
       +else
         ...
 
@@ -121,7 +121,11 @@ This repository includes a `samples/` directory where you can find the examples 
 
 ## <a name="history"></a>Release History
 
-#### 0.1.0 / 2014-09-4
+##### 0.1.1 / 2014-09-4
+
+  * Fixed bower versioning problem.
+
+##### 0.1.0 / 2014-09-4
 
   * Initial Release.
 

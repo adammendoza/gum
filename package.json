@@ -1,6 +1,6 @@
 {
   "name": "gum",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A no-sweat Jade+JS PHP library",
   "main": "Gruntfile.js",
   "samples": {
