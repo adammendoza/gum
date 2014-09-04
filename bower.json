@@ -6,6 +6,7 @@
     "Jorge Bucaran <jbucaran@me.com>"
   ],
   "description": "Write PHP in Jade.",
+  "main": "src/gum.api.js",
   "keywords": [
     "javascript",
     "jade",
