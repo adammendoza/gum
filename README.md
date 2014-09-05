@@ -94,7 +94,7 @@ Similarly,
 
 registers `item` in `$` and echoes a `foreach` loop that runs for each item in `array`.
 
-# <a name="api"></a>$
+# <a name="$"></a>$
 
 We use blocks in Jade in order to implement [mixins](http://jade-lang.com/reference/mixins/) that nest and behave like the control flow structures we know and love. But without blocks to describe the logical conditions, variables or other extra parameters, we need to *hack* the arguments and [attributes](http://jade-lang.com/reference/attributes/) to make our mixins work akin to real control structures.
 
