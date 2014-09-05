@@ -1,4 +1,4 @@
-# Gum v0.1.3 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
+# Gum v0.1.4 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
 > Write PHP in Jade.
 
 + [What's this?](#what)
@@ -121,9 +121,9 @@ This repository includes a `samples/` directory where you can find the examples 
 
 ## <a name="history"></a>Release History
 
-##### 0.1.3 / 2014-09-5
+##### 0.1.4 / 2014-09-5
 
-* Adds `echo` and `print` to `$.global.functions`.
+  * Adds `echo` and `print` to `$.global.functions`.
 
 ##### 0.1.2 / 2014-09-5
 
