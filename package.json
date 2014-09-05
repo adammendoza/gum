@@ -1,10 +1,10 @@
 {
   "name": "gum",
-  "version": "0.1.2",
-  "description": "A no-sweat Jade+JS PHP library",
+  "version": "0.1.3",
+  "description": "Write PHP in Jade.",
   "main": "Gruntfile.js",
   "samples": {
-    "enabled": true,
+    "enabled": false,
     "path": "samples/",
     "localhost": "../../www/gum"
   },
