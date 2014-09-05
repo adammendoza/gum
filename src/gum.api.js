@@ -107,6 +107,7 @@ $.gum.isFuncOrVar = function(value) {
   name = name.substr(0, 'function '.length) === 'function ' ?
     name.substr('function '.length) : name;
   return 'undefined' !== typeof $[name] || '$' === value.slice(0,1);
+  // @todo: add more robust variable check
 };
 // Converts Strings, Arrays, Objects and $.Node objects to a PHP expression.
 $.gum.parse = function() {
@@ -131,15 +132,11 @@ $.gum.parse = function() {
   });
   return [].join.call(args,',');
 };
-/*
- *  Returns $.Node.prototype.$ for $.Node objects or defaults to toString.
- */
+// Returns $.Node.prototype.$ for $.Node objects or defaults to toString.
 $.gum.toString = function(object) {
   return object ? (object.$ || object + '') : object + '';
 };
-/*
- *  Returns the property at @index in @object.
- */
+// Returns the property at @index in @object.
 $.gum.has = function(object, index) {
   index = index || 1
   var count = 1;
@@ -150,12 +147,14 @@ $.gum.has = function(object, index) {
   }
   return '';
 };
-/*
- *  Alias for $.Func and $.Symbol. Creates a function $.Node. If a value is
- *  passed, creates a symbol $.Node instead.
- */
+// Alias for $.Func and $.Symbol. Creates function / symbol $.Nodes.
 function $(name, value) {
-  return (typeof value === 'undefined') ? $.Func(name) : $.Symbol(name, value);
+  if (name instanceof Array) {
+    name.forEach(function(itemName) { $.Func(itemName) });
+  } else {
+    return ('undefined' === typeof value ) ?
+      $.Func(name) : $.Symbol(name, value);
+  }
 };
 /*
  *  Returns a function $.Node and adds it to the $ namespace.
@@ -224,6 +223,9 @@ $.global.symbols = {
   equal   : '='   ,   set       : '='     ,
   empty   : '""'  ,   null      : 'null'
 };
+$.global.functions = [// @from v0.1.2
+  'bloginfo', 'printf', 'date', 'sizeof', 'var_dump', 'print_r'
+];
 // Returns the superglobal alias for @name[@value].
 $.global.get = function(name, value) {
   return name.toUpperCase() + '[' + $.gum.parse(value) + ']';
@@ -241,7 +243,7 @@ $.global.symbols.forEach = function(callback){
 $.Node = function(name, value) {
   this.name = name;
   this.value = value, this.output = value; // Undefined for function nodes.
-  // Adds the symbols defined in $.global.symbols to the instance.
+  // Add the symbols defined in $.global.symbols.
   +function(node){
     $.global.symbols.forEach(function(name, value) {
       node.new(name, value);
@@ -318,17 +320,6 @@ $.Node.prototype.new = function(name, value) {
     });
   }
 };
-// Creates a node for the not, true and false operators.
-$.Symbol('not', '!');
-$.Symbol('true', 'true');
-$.Symbol('false', 'false');
-/*
- *  Empty node to allow binding prototype functions to the root $, as well
- *  as writing more readable code like:
- *
- *    $.myVar.be(X) or $.myVar.equal._(X)  →  $.let.myVar.be(10)
- */
-$.Symbol('let');
 /*
  *  Appends @value to the expression string. Also useful when you need to
  *  bypass the default operator precedence.
@@ -368,10 +359,7 @@ $.Node.prototype.to = function(value) {
 $.Node.prototype.be = function(value) {
   return this.set.to(value);
 };
-/*
- *  Returns value[index] as a string. Wraps @index in quotes if index is
- *  of type String.
- */
+// Returns value[index] as a string. Wraps @index in quotes if index → String.
 $.Node.prototype.at = function(index) {
   this.output += '[' + $.gum.parse(index) + ']';
   return this;
@@ -450,3 +438,15 @@ $.Node.prototype.Cookies = function(value) {
   return this;
 };
 $.Cookies = function(value) { return $.let.Cookies(value); }
+// Register globals available at the root level, ie. $.name
+$.global.functions.forEach(function(name) { $(name) }); // v0.1.2
+$.Symbol('not', '!');
+$.Symbol('true', 'true');
+$.Symbol('false', 'false');
+/*
+ *  Empty node to allow binding prototype functions to the root $, as well
+ *  as writing more readable code like:
+ *
+ *    $.myVar.be(X) or $.myVar.equal._(X)  →  $.let.myVar.be(10)
+ */
+$.Symbol('let');

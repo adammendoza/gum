@@ -1,4 +1,4 @@
-# Gum v0.1.1 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
+# Gum v0.1.2 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
 > Write PHP in Jade.
 
 + [What's this?](#what)
@@ -121,9 +121,14 @@ This repository includes a `samples/` directory where you can find the examples 
 
 ## <a name="history"></a>Release History
 
+##### 0.1.2 / 2014-09-4
+
+  * Adds `$.global.functions` to include some PHP functions by default: `print_r`, `var_dump`, `printf`. etc.
+  * Pass an array to `$(['f1', 'f2', 'f3'...])` to batch define a list of functions.
+
 ##### 0.1.1 / 2014-09-4
 
-  * Fixed bower versioning problem.
+  * Patches a versioning issue with bower.
 
 ##### 0.1.0 / 2014-09-4
 

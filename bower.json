@@ -1,6 +1,6 @@
 {
   "name": "gum",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/bucaran/gum",
   "authors": [
     "Jorge Bucaran <jbucaran@me.com>"
@@ -19,7 +19,7 @@
     "node_modules",
     "Gruntfile.coffee",
     "package.json",
-    "src/",
-    "samples/"
+    "samples/",
+    "src/"
   ]
 }
