@@ -224,7 +224,7 @@ $.global.symbols = {
   empty   : '""'  ,   null      : 'null'
 };
 $.global.functions = [// @from v0.1.2
-  'bloginfo', 'printf', 'date', 'sizeof', 'var_dump', 'print_r'
+  'bloginfo', 'printf', 'date', 'sizeof', 'var_dump', 'print_r', 'echo', 'print'
 ];
 // Returns the superglobal alias for @name[@value].
 $.global.get = function(name, value) {
