@@ -1,4 +1,4 @@
-# Gum v0.1.4 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
+# Gum v0.1.5 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png> "Optional title")](http://gruntjs.com)
 > Write PHP in Jade.
 
 + [What's this?](#what)
@@ -18,7 +18,7 @@
 Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks.
 
 # <a name="install"></a>Installation
-Download with `bower install gum` and start using it in your Jade projects with one line `include gum`.
+Download with `bower install gum` and start using it in your Jade projects with one line `include gum/main`.
 
 Clone to explore, modify and / or compile the code yourself. If you can help finding bugs and improving the library it's a ++!
 
@@ -61,7 +61,7 @@ There are several control structure-like mixins available in Gum that generate t
       ...
     +fi
 
-Echoes a PHP if stament. Ideally we would do away with the closing `+fi` but that means `+elseif` and `+else` would have to be nested inside the `+if`.
+Echoes a PHP `if` stament. Ideally we would do away with the closing `+fi` but that means `+elseif` and `+else` would have to be nested inside the `+if`.
 
 ### <a name="switch"></a>Switch
 
@@ -73,7 +73,7 @@ Echoes a PHP if stament. Ideally we would do away with the closing `+fi` but tha
       +else
         ...
 
-Use `+else` to handle default cases.
+`Switch` statement. Use `+else` to handle default cases.
 
 ### <a name="for"></a>For
 
@@ -83,7 +83,7 @@ Use `+else` to handle default cases.
       ...
     +for(k=100 to=-100 by=-10)
 
-The above registers `i`, `j` and `k` in `$` and generates a for loop that runs:
+The above registers `i`, `j` and `k` in `$` and generates a `for` loop that runs:
 
    * `to` - `from` times at `by` intervals where `from` is `i`, `j` or `k`.
    * If `by` is not set, the default will be 1 if `from < to`, or -1 otherwise.
@@ -93,6 +93,13 @@ Similarly,
     +each(in=array item)
 
 registers `item` in `$` and echoes a `foreach` loop that runs for each item in `array`.
+
+### <a name="while"></a>While
+
+    +while(condition)
+      ...
+
+Echoes a PHP `while` statement.
 
 # <a name="$"></a>$
 
@@ -120,6 +127,10 @@ This repository includes a `samples/` directory where you can find the examples 
   * [Homepage](http://bucaran.me)
 
 ## <a name="history"></a>Release History
+
+##### 0.1.5 / 2014-09-6
+
+  * Adds `main.jade` that loads gum. Including gum in your project it's easier now `include gum/main`.
 
 ##### 0.1.4 / 2014-09-5
 

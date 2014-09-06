@@ -1,8 +1,8 @@
 {
   "name": "gum",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Write PHP in Jade.",
-  "main": "Gruntfile.js",
+  "main": "main.jade",
   "samples": {
     "enabled": false,
     "path": "samples/",

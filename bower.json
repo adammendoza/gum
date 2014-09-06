@@ -1,12 +1,12 @@
 {
   "name": "gum",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "homepage": "https://github.com/bucaran/gum",
   "authors": [
     "Jorge Bucaran <jbucaran@me.com>"
   ],
   "description": "Write PHP in Jade.",
-  "main": "src/gum.api.js",
+  "main": "main.jade",
   "keywords": [
     "javascript",
     "jade",
