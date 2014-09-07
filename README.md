@@ -120,6 +120,13 @@ In practice, it's easier to declare variables directly in Gum with `+-` since th
 
 This repository includes a `samples/` directory where you can find the examples available for this release. In order to use Gum you need [Jade](http://jade-lang.com/command-line/) and a PHP enabled server to run the generated `samples/index.php`. Edit the `samples.enabled` and `samples.localhost` properties in the `package.json` file to enable the samples.
 
+    "samples": {
+      "enabled": true,
+      "path": "samples/",
+      "localhost": "../path/to/your/localhost"
+    },
+
+
 # <a name="social"></a>Get Social
 
   * [GitHub](http://github.com/bucaran)
