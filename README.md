@@ -15,7 +15,7 @@
 + [Release History](#history)
 
 # <a name="what"></a>What's this?
-Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks. See [Installation](#install) and [Samples](#samples) sections below for what you should do to see Gum in action.
+Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks. See [Installation](#install) and [Samples](#samples) sections below to learn how to see Gum in action.
 
 # <a name="install"></a>Installation
 Download with `bower install gum` and start using it in your Jade projects with one line `include gum/main`.
@@ -118,7 +118,7 @@ In practice, it's easier to declare variables directly in Gum with `+-` since th
 
 # <a name="samples"></a>Samples
 
-This repository includes a `samples/` directory where you can find the examples available for this release. Edit the `samples.enabled` and `samples.localhost` configuration in the `package.json` file to enable the samples.
+This repository includes a `samples/` directory where you can find the examples available for this release. In order to use Gum you need [Jade](http://jade-lang.com/command-line/) and a PHP enabled server to run the generated `samples/index.php`. Edit the `samples.enabled` and `samples.localhost` properties in the `package.json` file to enable the samples.
 
 # <a name="social"></a>Get Social
 
