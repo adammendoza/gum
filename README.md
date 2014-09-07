@@ -15,7 +15,7 @@
 + [Release History](#history)
 
 # <a name="what"></a>What's this?
-Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks.
+Gum is a Jade+JavaScript library that lets you write PHP with Jade. While not intended as a PHP replacement of any kind, Gum should offer a funky approach to most basic PHP programming tasks. See [Installation](#install) and [Samples](#samples) sections below for what you should do to see Gum in action.
 
 # <a name="install"></a>Installation
 Download with `bower install gum` and start using it in your Jade projects with one line `include gum/main`.
